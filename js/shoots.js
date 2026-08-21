@@ -43,7 +43,7 @@ function renderShootsTab() {
         
         // Find content linked to this client and in production/script stages
         const clientContent = AppState.contentItems.filter(i => 
-            i.clientId === session.clientId && 
+            i.clientId === session.clientId && !i.archived && 
             (i.stage === 'تصوير' || i.stage === 'سكريبت' || i.stage === 'فكرة' || (session.items && session.items.includes(i.id)))
         );
 
@@ -163,7 +163,7 @@ function renderShootsTab() {
                                     <div class="space-y-1 min-w-0 flex-1">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0">${item.platform} • ${item.type}</span>
-                                            <h4 class="font-black text-slate-900 text-sm truncate">${item.title}</h4>
+                                            <h4 class="font-black text-slate-900 text-sm break-words leading-relaxed">${item.title}</h4>
                                         </div>
                                         
                                         <!-- Reel Progress Indicator -->
@@ -173,14 +173,14 @@ function renderShootsTab() {
                                                 ${doneCount} / ${totalShots} (${reelPercent}%)
                                             </span>
                                             <div class="w-24 bg-slate-100 h-1.5 rounded-full overflow-hidden shrink-0">
-                                                <div class="${isReelDone ? 'bg-emerald-500' : 'bg-indigo-600'} h-full rounded-full" style="width: ${reelPercent}%"></div>
+                                                <div class="${isReelDone ? 'bg-emerald-500' : 'bg-indigo-600'} h-full rounded-full" style="width: ${reelPercent}%\"></div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Reel Actions & Move to Editing Button -->
                                     <div class="flex items-center gap-2 shrink-0">
-                                        ${isReelDone && item.stage !== 'مونتاج' && item.stage !== 'تم النشر' ? `
+                                        ${isReelDone && item.stage !== '✂️ مونتاج / تصميم' && item.stage !== 'مونتاج' && item.stage !== '✅ تم النشر' && item.stage !== 'تم النشر' ? `
                                             <button onclick="moveToEditing('${item.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-3.5 py-2 rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer animate-bounce">
                                                 <i class="fa-solid fa-scissors"></i>
                                                 <span>نقل إلى المونتاج ✂️</span>
@@ -190,7 +190,7 @@ function renderShootsTab() {
                                             <i class="fa-solid fa-file-lines text-indigo-600"></i>
                                             <span>الاسكريبت الكامل</span>
                                         </button>
-                                        <button onclick="editContentItem('${item.id}')" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer" title="تعديل"><i class="fa-solid fa-pen"></i></button>
+                                        <button onclick="editContentItem('${item.id}')" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100" title="تعديل"><i class="fa-solid fa-pen"></i></button>
                                     </div>
                                 </div>
 
@@ -214,7 +214,7 @@ function renderShootsTab() {
                                             <i class="fa-solid fa-list-check text-rose-500"></i>
                                             <span>شوتات المشهد (Shotlist):</span>
                                         </span>
-                                        <button onclick="generateDefaultShots('${item.id}')" class="text-[10px] text-indigo-600 hover:underline font-bold cursor-pointer">
+                                        <button onclick="generateDefaultShots('${item.id}')" class="text-[10px] text-indigo-600 hover:underline font-bold">
                                             + توليد شوتات افتراضية
                                         </button>
                                     </div>
@@ -231,7 +231,7 @@ function renderShootsTab() {
                                                         <input type="checkbox" ${shot.done ? 'checked' : ''} onchange="toggleShotDone('${item.id}', '${shot.id}', this.checked)" class="w-5 h-5 rounded-md text-emerald-600 focus:ring-emerald-500 cursor-pointer border-slate-300 shrink-0">
                                                         <span class="text-xs font-semibold ${shot.done ? 'text-emerald-900 line-through' : 'text-slate-900'} leading-snug break-words">${shot.text}</span>
                                                     </label>
-                                                    <button onclick="deleteShot('${item.id}', '${shot.id}')" class="text-slate-300 hover:text-rose-500 p-1 shrink-0 cursor-pointer" title="حذف الشوت">
+                                                    <button onclick="deleteShot('${item.id}', '${shot.id}')" class="text-slate-300 hover:text-rose-500 p-1 shrink-0" title="حذف الشوت">
                                                         <i class="fa-solid fa-xmark text-xs"></i>
                                                     </button>
                                                 </div>
@@ -309,8 +309,7 @@ function generateDefaultShots(contentId) {
     if (!item) return;
 
     if (!item.shots) item.shots = [];
-    const defaults = [
-        { id: 'st-' + Date.now() + '-1', text: '1. لقطة الهوك الافتتاحية والمشهد التعبيري (0 to 3s)', done: false },
+    const defaults = [\n        { id: 'st-' + Date.now() + '-1', text: '1. لقطة الهوك الافتتاحية والمشهد التعبيري (0 to 3s)', done: false },
         { id: 'st-' + Date.now() + '-2', text: '2. تفاصيل المتن والـ B-Roll وشرح المشاهد العملية', done: false },
         { id: 'st-' + Date.now() + '-3', text: '3. لقطة الختام والدعوة المباشرة لاتخاذ إجراء (CTA)', done: false }
     ];
@@ -325,7 +324,7 @@ function moveToEditing(contentId) {
     const item = AppState.contentItems.find(i => i.id === contentId);
     if (!item) return;
 
-    item.stage = 'مونتاج';
+    item.stage = '✂️ مونتاج / تصميم';
     saveState();
     renderAll();
     showToast('success', 'تم النقل للمونتاج ✂️', `أصبحت مرحلة "${item.title.slice(0, 25)}..." الآن في المونتاج.`);

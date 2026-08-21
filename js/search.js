@@ -142,8 +142,8 @@ function renderCommandResults(query) {
                (client.name && client.name.toLowerCase().includes(q));
     });
 
-    const matchedTasks = AppState.urgentTasks.filter(t => 
-        t.text && t.text.toLowerCase().includes(q)
+    const matchedTasks = (AppState.tasks || []).filter(t => 
+        (t.title && t.title.toLowerCase().includes(q)) || (t.notes && t.notes.toLowerCase().includes(q))
     );
 
     const matchedShoots = AppState.shootSessions.filter(s => {
@@ -234,7 +234,7 @@ function renderCommandResults(query) {
                                     <span class="text-[11px] text-slate-400 font-medium truncate block">${c.niche || 'عميل'} • اشتراك: ${(Number(c.retainer)||0).toLocaleString()} ج.م</span>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 shrink-0">مساحة العميل ↗</span>
+                            ${c.archived ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 shrink-0">مؤرشف 📦</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 shrink-0">مساحة العميل ↗</span>`}
                         </div>
                     `;
                 }).join('')}
@@ -265,7 +265,7 @@ function renderCommandResults(query) {
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 shrink-0">
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800">${item.stage}</span>
+                                ${item.archived ? `<span class="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 shrink-0">مؤرشف 📦</span>` : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800">${item.stage}</span>`}
                                 <span class="text-[10px] text-slate-400">فتح ↗</span>
                             </div>
                         </div>
@@ -293,8 +293,8 @@ function renderCommandResults(query) {
                                     <i class="fa-solid fa-video"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <span class="font-bold text-slate-900 text-xs block truncate">${s.date} (${s.time}) • ${s.location}</span>
-                                    <span class="text-[11px] text-slate-400 font-medium truncate block">جلسة تصوير: ${client.name}</span>
+                                    <span class="font-bold text-slate-900 text-xs block truncate">جلسة تصوير: ${client.name}</span>
+                                    <span class="text-[11px] text-slate-400 font-medium truncate block">${s.date} (${s.time}) • ${s.location}</span>
                                 </div>
                             </div>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 shrink-0">استوديو التصوير ↗</span>
@@ -322,8 +322,8 @@ function renderCommandResults(query) {
                                     <i class="fa-solid fa-check"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <span class="font-bold text-slate-900 text-xs block truncate ${t.done ? 'line-through text-slate-400' : ''}">${t.text}</span>
-                                    <span class="text-[10px] text-purple-700 font-semibold">${t.done ? 'مكتملة ✓' : 'معلقة'}</span>
+                                    <span class="font-bold text-slate-900 text-xs block truncate ${t.status === 'completed' ? 'line-through text-slate-400' : ''}">${t.title || t.text}</span>
+                                    <span class="text-[10px] text-purple-700 font-semibold">${t.status === 'completed' ? 'مكتملة ✓' : 'معلقة'}</span>
                                 </div>
                             </div>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 shrink-0">عرض ↗</span>

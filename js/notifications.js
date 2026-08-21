@@ -11,7 +11,7 @@ function getSystemNotifications() {
     const readIds = AppState.readNotifications || [];
 
     // 1. Critical / Overdue Urgent Tasks
-    const pendingTasks = AppState.urgentTasks.filter(t => !t.done);
+    const pendingTasks = (AppState.tasks || []).filter(t => t.status !== 'completed' && t.status !== 'waiting');
     pendingTasks.forEach(t => {
         const notifId = `notif-task-${t.id}`;
         const client = t.clientId ? AppState.clients.find(c => c.id === t.clientId) : null;
@@ -20,7 +20,7 @@ function getSystemNotifications() {
             priority: 1, // Critical
             category: 'task',
             title: 'مهمة عاجلة بانتظار الإنجاز',
-            message: t.text,
+            message: t.title || t.text,
             timeLabel: 'مطلوب إنجازها الآن',
             clientName: client ? client.name : null,
             clientId: t.clientId || null,
@@ -42,7 +42,7 @@ function getSystemNotifications() {
     });
 
     // 2. Overdue Client Retainers / Dues
-    const overdueClients = AppState.clients.filter(c => (Number(c.retainer) || 0) > (Number(c.paid) || 0));
+    const overdueClients = (AppState.clients || []).filter(c => !c.archived && (Number(c.retainer) || 0) > (Number(c.paid) || 0));
     overdueClients.forEach(c => {
         const notifId = `notif-client-due-${c.id}`;
         const due = (Number(c.retainer) || 0) - (Number(c.paid) || 0);
@@ -92,7 +92,7 @@ function getSystemNotifications() {
     });
 
     // 4. Content Scheduled for Today (in production)
-    const todayContent = AppState.contentItems.filter(i => i.date === todayStr && i.stage !== 'تم النشر');
+    const todayContent = (AppState.contentItems || []).filter(i => !i.archived && i.date === todayStr && i.stage !== '✅ تم النشر' && i.stage !== 'تم النشر');
     todayContent.forEach(item => {
         const notifId = `notif-cnt-today-${item.id}`;
         const client = AppState.clients.find(c => c.id === item.clientId) || { name: 'عميل' };
@@ -117,7 +117,7 @@ function getSystemNotifications() {
     });
 
     // 5. Content Needing Script / Decision (Unscheduled or in early stages)
-    const pendingIdeas = AppState.contentItems.filter(i => (i.stage === 'فكرة' || i.stage === 'سكريبت') && i.date !== todayStr);
+    const pendingIdeas = (AppState.contentItems || []).filter(i => !i.archived && (i.stage === 'فكرة' || i.stage === 'سكريبت') && i.date !== todayStr);
     if (pendingIdeas.length > 0) {
         const notifId = `notif-cnt-pending-decision`;
         notifs.push({
@@ -150,7 +150,7 @@ function getSystemNotifications() {
             id: notifId,
             priority: 3,
             category: 'shoot',
-            title: `جلسة تصوير قادمة: ${client.name}` ,
+            title: `جلسة تصوير قادمة: ${client.name}`,
             message: `تاريخ: ${nextShoot.date} (${nextShoot.time}) - ${nextShoot.location}`,
             timeLabel: nextShoot.date,
             clientName: client.name,
