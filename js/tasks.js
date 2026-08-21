@@ -1,389 +1,312 @@
 /**
  * ==========================================================================
- * Koksh Workspace OS — Unified Tasks, Productivity & Review Queue Engine
- * Phase 11: Automatic Task Aggregation, Manual Tasks, Waiting & Review Queue
+ * Koksh Workspace OS — Unified Tasks & Productivity Engine (js/tasks.js)
+ * Clean Row-Based Workflow, Waiting Statuses, Review Queue & Categories
  * ==========================================================================
  */
 
-function renderTasksTab() {
-    const activeCategory = AppState.tasksCategoryFilter || 'ALL';
-    const clientFilter = AppState.tasksClientFilter || 'ALL';
-    const statusFilter = AppState.tasksStatusFilter || 'ALL';
-    const priorityFilter = AppState.tasksPriorityFilter || 'ALL';
+const TASK_CATEGORIES = [
+    { key: "all", label: "الكل", icon: "fa-solid fa-list-check" },
+    { key: "editing", label: "المونتاج", icon: "fa-solid fa-scissors" },
+    { key: "design", label: "التصميم", icon: "fa-solid fa-pen-nib" },
+    { key: "ads", label: "إدارة الإعلانات", icon: "fa-solid fa-bullhorn" },
+    { key: "planning", label: "التخطيط", icon: "fa-solid fa-lightbulb" },
+    { key: "scheduling", label: "جدولة المحتوى", icon: "fa-solid fa-calendar-check" },
+    { key: "manual", label: "مهام يدوية", icon: "fa-solid fa-check-double" }
+];
 
+function renderTasksTab() {
+    renderTaskMetrics();
+    renderCategoryNav();
+    renderReviewQueue();
+    renderTasksList();
+    populateTasksClientFilter();
+}
+
+// 1. Task Metrics Header Counters
+function renderTaskMetrics() {
+    const allTasks = collectAllSystemTasks();
     const todayStr = new Date().toISOString().slice(0, 10);
 
-    // 1. Gather all tasks (Manual + System Aggregated)
-    const allCollectedTasks = collectAllSystemTasks();
-
-    // 2. Compute Summary Metrics
-    const overdueCount = allCollectedTasks.filter(t => t.status !== 'completed' && t.status !== 'waiting' && t.dueDate && t.dueDate < todayStr).length;
-    const todayCount = allCollectedTasks.filter(t => t.status !== 'completed' && t.status !== 'waiting' && t.dueDate === todayStr).length;
-    const upcomingCount = allCollectedTasks.filter(t => t.status !== 'completed' && t.status !== 'waiting' && t.dueDate && t.dueDate > todayStr).length;
-    const completedCount = allCollectedTasks.filter(t => t.status === 'completed').length;
-    const waitingCount = allCollectedTasks.filter(t => t.status === 'waiting').length;
+    const overdueCount = allTasks.filter(t => t.status !== 'completed' && t.status !== 'waiting' && t.dueDate && t.dueDate < todayStr).length;
+    const todayCount = allTasks.filter(t => t.status !== 'completed' && t.status !== 'waiting' && t.dueDate === todayStr).length;
+    const upcomingCount = allTasks.filter(t => t.status !== 'completed' && t.status !== 'waiting' && t.dueDate && t.dueDate > todayStr).length;
+    const waitingCount = allTasks.filter(t => t.status === 'waiting').length;
+    const completedCount = allTasks.filter(t => t.status === 'completed').length;
 
     const elOverdue = document.getElementById('task-metric-overdue');
     const elToday = document.getElementById('task-metric-today');
     const elUpcoming = document.getElementById('task-metric-upcoming');
-    const elCompleted = document.getElementById('task-metric-completed');
     const elWaiting = document.getElementById('task-metric-waiting');
+    const elCompleted = document.getElementById('task-metric-completed');
+    const elNavBadge = document.getElementById('tasks-badge-count');
 
     if (elOverdue) elOverdue.textContent = overdueCount;
     if (elToday) elToday.textContent = todayCount;
     if (elUpcoming) elUpcoming.textContent = upcomingCount;
-    if (elCompleted) elCompleted.textContent = completedCount;
     if (elWaiting) elWaiting.textContent = waitingCount;
+    if (elCompleted) elCompleted.textContent = completedCount;
 
-    // 3. Filter Tasks List
-    let displayTasks = allCollectedTasks;
+    const activeTotal = overdueCount + todayCount + upcomingCount;
+    if (elNavBadge) elNavBadge.textContent = activeTotal;
+}
 
-    if (activeCategory !== 'ALL') {
-        displayTasks = displayTasks.filter(t => t.categoryKey === activeCategory);
-    }
-    if (clientFilter !== 'ALL') {
-        displayTasks = displayTasks.filter(t => t.clientId === clientFilter);
-    }
-    if (statusFilter !== 'ALL') {
-        displayTasks = displayTasks.filter(t => t.status === statusFilter);
-    }
-    if (priorityFilter !== 'ALL') {
-        displayTasks = displayTasks.filter(t => t.priority === priorityFilter);
-    }
+// 2. Category Nav Filter Tabs
+function renderCategoryNav() {
+    const container = document.getElementById('tasks-category-nav');
+    if (!container) return;
 
-    // Sort: Overdue first, then by Due Date ascending, then high priority
-    displayTasks.sort((a, b) => {
-        if (a.status === 'completed' && b.status !== 'completed') return 1;
-        if (a.status !== 'completed' && b.status === 'completed') return -1;
-        if (a.status === 'waiting' && b.status !== 'waiting') return 1;
-        if (a.status !== 'waiting' && b.status === 'waiting') return -1;
-        
-        const dateA = a.dueDate || '9999-99-99';
-        const dateB = b.dueDate || '9999-99-99';
-        return dateA.localeCompare(dateB);
-    });
+    const currentCat = AppState.tasksActiveCategory || 'all';
+    const allTasks = collectAllSystemTasks();
 
-    // 4. Render Tasks Category Buttons
-    const catKeys = [
-        { key: 'ALL', label: 'الكل', icon: 'fa-list-check' },
-        { key: 'editing', label: 'مونتاج', icon: 'fa-scissors' },
-        { key: 'design', label: 'تصميم', icon: 'fa-palette' },
-        { key: 'ads', label: 'إعلانات', icon: 'fa-bullhorn' },
-        { key: 'planning', label: 'تخطيط', icon: 'fa-compass-drafting' },
-        { key: 'scheduling', label: 'جدولة', icon: 'fa-clock' },
-        { key: 'manual', label: 'مهام يدوية', icon: 'fa-check-double' }
-    ];
-
-    const navContainer = document.getElementById('tasks-category-nav');
-    if (navContainer) {
-        navContainer.innerHTML = catKeys.map(cat => {
-            const count = cat.key === 'ALL' 
-                ? allCollectedTasks.filter(t => t.status !== 'completed').length 
-                : allCollectedTasks.filter(t => t.categoryKey === cat.key && t.status !== 'completed').length;
-            const isActive = activeCategory === cat.key;
-            return `
-                <button onclick="setTasksCategoryFilter('${cat.key}')" class="px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${isActive ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
-                    <i class="fa-solid ${cat.icon} text-[10px]"></i>
-                    <span>${cat.label}</span>
-                    <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'} font-black">${count}</span>
-                </button>
-            `;
-        }).join('');
-    }
-
-    // 5. Render Review Queue if any items exist
-    renderReviewQueue();
-
-    // 6. Render Main Tasks List
-    const taskContainer = document.getElementById('tasks-list-container');
-    if (!taskContainer) return;
-
-    if (displayTasks.length === 0) {
-        taskContainer.innerHTML = `
-            <div class="py-16 text-center bg-white rounded-3xl border border-slate-200 shadow-soft space-y-3">
-                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mx-auto">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-                <h3 class="font-bold text-slate-800 text-sm">لا توجد مهام في هذا التصنيف حالياً ✓</h3>
-                <p class="text-xs text-slate-400 max-w-sm mx-auto">جميع الأعمال والمهام منجزة ومحدثة تماماً.</p>
-                <button onclick="openNewTaskModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer shadow-xs">
-                    + إضافة مهمة يدوية
-                </button>
-            </div>
-        `;
-        return;
-    }
-
-    taskContainer.innerHTML = displayTasks.map(t => {
-        const client = (AppState.clients || []).find(c => c.id === t.clientId) || { name: 'عام' };
-        const isCompleted = t.status === 'completed';
-        const isWaiting = t.status === 'waiting';
-        const isOverdue = !isCompleted && !isWaiting && t.dueDate && t.dueDate < todayStr;
-        const isToday = !isCompleted && !isWaiting && t.dueDate === todayStr;
-
-        let statusBadge = '';
-        if (isCompleted) {
-            statusBadge = '<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full">مكتملة ✓</span>';
-        } else if (isWaiting) {
-            statusBadge = `<span class="bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-full"><i class="fa-solid fa-hourglass-half ml-1"></i>${t.waitingReason || 'معلق'}</span>`;
-        } else if (isOverdue) {
-            statusBadge = '<span class="bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold px-2 py-0.5 rounded-full">متأخرة ⚠️</span>';
-        } else if (isToday) {
-            statusBadge = '<span class="bg-indigo-50 text-indigo-700 border border-indigo-200 text-[10px] font-bold px-2 py-0.5 rounded-full">اليوم 🔥</span>';
+    container.innerHTML = TASK_CATEGORIES.map(cat => {
+        let count = 0;
+        if (cat.key === 'all') {
+            count = allTasks.filter(t => t.status !== 'completed').length;
+        } else {
+            count = allTasks.filter(t => t.categoryKey === cat.key && t.status !== 'completed').length;
         }
 
-        const priorityColors = {
-            'high': 'bg-rose-100 text-rose-800',
-            'medium': 'bg-amber-100 text-amber-800',
-            'low': 'bg-slate-100 text-slate-600'
-        }[t.priority] || 'bg-slate-100 text-slate-600';
-
-        const categoryIcons = {
-            'editing': 'fa-scissors text-purple-600 bg-purple-50',
-            'design': 'fa-palette text-blue-600 bg-blue-50',
-            'ads': 'fa-bullhorn text-emerald-600 bg-emerald-50',
-            'planning': 'fa-compass-drafting text-amber-600 bg-amber-50',
-            'scheduling': 'fa-clock text-indigo-600 bg-indigo-50',
-            'manual': 'fa-check-double text-slate-700 bg-slate-100'
-        }[t.categoryKey] || 'fa-check-double text-slate-700 bg-slate-100';
-
+        const isActive = currentCat === cat.key;
         return `
-            <div class="p-4 bg-white hover:bg-slate-50/80 rounded-2xl border ${isOverdue ? 'border-rose-300 bg-rose-50/10' : (isCompleted ? 'border-slate-200 opacity-60' : 'border-slate-200')} shadow-soft flex flex-col md:flex-row items-start md:items-center justify-between gap-3.5 transition-all">
-                <div class="flex items-start gap-3 min-w-0 flex-1">
-                    <button onclick="toggleUnifiedTaskDone('${t.id}')" class="w-6 h-6 rounded-lg border flex items-center justify-center text-xs mt-0.5 transition-colors cursor-pointer shrink-0 ${isCompleted ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 hover:border-brand-500 bg-white'}">
-                        ${isCompleted ? '<i class="fa-solid fa-check"></i>' : ''}
-                    </button>
-                    <div class="space-y-1 min-w-0 flex-1">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="font-bold text-slate-900 text-xs break-words ${isCompleted ? 'line-through text-slate-400' : ''}">${t.title}</span>
-                            ${statusBadge}
-                            <span class="text-[10px] font-bold px-2 py-0.2 rounded-md ${priorityColors} shrink-0">${t.priority === 'high' ? 'أولوية قصوى' : (t.priority === 'medium' ? 'أولوية متوسطة' : 'عادية')}</span>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 font-semibold pt-0.5">
-                            ${t.clientId ? `<span class="text-slate-600 cursor-pointer hover:underline" onclick="navigateToClientWorkspace('${t.clientId}')"><i class="fa-solid fa-user ml-1 text-slate-400"></i>${client.name}</span>` : ''}
-                            ${t.dueDate ? `<span><i class="fa-solid fa-calendar-day ml-1 text-slate-400"></i>تاريخ التسليم: ${t.dueDate}</span>` : ''}
-                            ${t.sourceType === 'content' ? `<span class="text-brand-600 cursor-pointer hover:underline" onclick="editContentItem('${t.sourceId}')">فتح المحتوى ↗</span>` : ''}
-                            ${t.sourceType === 'shoot' ? `<span class="text-rose-600 cursor-pointer hover:underline" onclick="navigateToShootSession('${t.sourceId}')">استوديو التصوير ↗</span>` : ''}
-                        </div>
-                        ${t.notes ? `<p class="text-[11px] text-slate-500 break-words mt-1 bg-slate-50 p-2 rounded-xl border border-slate-100">${t.notes}</p>` : ''}
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-1.5 shrink-0 self-end md:self-center">
-                    ${!isCompleted ? `
-                        <div class="relative group">
-                            <button onclick="promptTaskWaiting('${t.id}')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-amber-50 text-slate-600 hover:text-amber-800 text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors" title="تعليق المهمة (Waiting)">
-                                <i class="fa-solid fa-hourglass-half text-[10px]"></i>
-                                <span>${isWaiting ? 'تحديث التعليق' : 'في الانتظار'}</span>
-                            </button>
-                        </div>
-                    ` : ''}
-                    ${t.isManual ? `
-                        <button onclick="deleteManualTask('${t.id}')" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs cursor-pointer transition-colors" title="حذف المهمة">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    ` : ''}
-                </div>
-            </div>
+            <button onclick="setTasksCategory('${cat.key}')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                isActive 
+                    ? 'bg-slate-900 text-white shadow-2xs' 
+                    : 'bg-slate-100 hover:bg-slate-200/80 text-slate-600'
+            }">
+                <i class="${cat.icon} text-[11px] ${isActive ? 'text-indigo-400' : 'text-slate-400'}"></i>
+                <span>${cat.label}</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}">${count}</span>
+            </button>
         `;
     }).join('');
 }
 
-// Automatically Collect and Synthesize Tasks across all modules
+function setTasksCategory(catKey) {
+    AppState.tasksActiveCategory = catKey;
+    renderTasksTab();
+}
+
+function setTasksClientFilter(clientId) {
+    AppState.tasksClientFilter = clientId;
+    renderTasksTab();
+}
+
+function setTasksStatusFilter(status) {
+    AppState.tasksStatusFilter = status;
+    renderTasksTab();
+}
+
+function populateTasksClientFilter() {
+    const select = document.getElementById('tasks-client-filter');
+    if (!select) return;
+    const currentVal = select.value || AppState.tasksClientFilter || 'ALL';
+
+    const activeClients = (AppState.clients || []).filter(c => !c.archived);
+    select.innerHTML = '<option value="ALL">جميع العملاء</option>' + 
+        activeClients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    select.value = currentVal;
+}
+
+// 3. System Task Auto-Aggregation Engine
 function collectAllSystemTasks() {
     const tasks = [];
     const todayStr = new Date().toISOString().slice(0, 10);
 
-    // 1. Manual Tasks from AppState.tasks
+    // 1. Manual User Tasks
     (AppState.tasks || []).forEach(t => {
         tasks.push({
             id: t.id,
+            source: 'manual',
             title: t.title,
             clientId: t.clientId || null,
-            categoryKey: t.type || 'manual',
+            categoryKey: t.type === 'editing' ? 'editing' : 
+                         t.type === 'design' ? 'design' : 
+                         t.type === 'ads' ? 'ads' : 
+                         t.type === 'planning' ? 'planning' : 
+                         t.type === 'scheduling' ? 'scheduling' : 'manual',
+            categoryLabel: t.type === 'editing' ? 'مونتاج' : 
+                           t.type === 'design' ? 'تصميم' : 
+                           t.type === 'ads' ? 'إعلانات' : 
+                           t.type === 'planning' ? 'تخطيط' : 
+                           t.type === 'scheduling' ? 'جدولة' : 'مهمة يدوية',
             priority: t.priority || 'medium',
             dueDate: t.dueDate || todayStr,
             status: t.status || 'pending',
             waitingReason: t.waitingReason || null,
             notes: t.notes || '',
-            isManual: true,
-            sourceType: 'manual',
-            sourceId: t.id
+            raw: t
         });
     });
 
-    // 2. Urgent Tasks (Legacy compatibility)
-    (AppState.urgentTasks || []).forEach(u => {
-        if (!tasks.some(t => t.id === u.id || t.title === u.text)) {
-            tasks.push({
-                id: u.id,
-                title: u.text,
-                clientId: u.clientId || null,
-                categoryKey: 'manual',
-                priority: 'high',
-                dueDate: todayStr,
-                status: u.done ? 'completed' : 'pending',
-                waitingReason: null,
-                notes: '',
-                isManual: true,
-                sourceType: u.contentId ? 'content' : (u.shootId ? 'shoot' : 'manual'),
-                sourceId: u.contentId || u.shootId || u.id
-            });
-        }
+    // 2. Urgent Dashboard Tasks
+    (AppState.urgentTasks || []).forEach(ut => {
+        tasks.push({
+            id: ut.id,
+            source: 'urgent',
+            title: ut.text,
+            clientId: ut.clientId || null,
+            categoryKey: 'manual',
+            categoryLabel: 'مهمة عاجلة',
+            priority: 'high',
+            dueDate: todayStr,
+            status: ut.done ? 'completed' : 'pending',
+            waitingReason: null,
+            notes: '',
+            raw: ut
+        });
     });
 
-    // 3. Content in Editing / Design stage
+    // 3. Automated Video Editing Tasks from Content items in editing stage
     (AppState.contentItems || []).filter(i => !i.archived).forEach(i => {
-        const isVideo = i.type === 'Reels / Short' || i.type === 'Video' || i.platform === 'TikTok' || i.platform === 'YouTube' || i.platform === 'YouTube Shorts';
-        const isEditingStage = i.stage === '✂️ مونتاج / تصميم' || i.stage === 'مونتاج' || i.stage === '🎥 تم التصوير';
-        const isPlanningStage = i.stage === '💡 فكرة' || i.stage === 'فكرة' || i.stage === '📋 تخطيط' || i.stage === 'سكريبت';
-        const isSchedulingStage = i.stage === '📦 جاهز للجدولة' || i.stage === 'جاهز للنشر';
+        const isEditingStage = i.stage.includes('مونتاج') || i.stage.includes('تصميم') || i.stage.includes('تم التصوير');
+        const isReviewStage = i.stage.includes('مراجعة');
+        const isPlanningStage = i.stage.includes('فكرة') || i.stage.includes('تخطيط');
+        const isReadyToSchedule = i.stage.includes('جاهز للجدولة') || i.stage.includes('جاهز للنشر');
+        const isDone = i.stage.includes('تم النشر');
 
-        if (isEditingStage) {
+        const isVideo = i.type === 'Reels / Short' || i.type === 'Video';
+        const isDesign = i.type === 'Single Post / تصميم' || i.type === 'Carousel / ألبوم';
+
+        if (isVideo && isEditingStage && !isDone) {
             tasks.push({
-                id: 'sys-edit-' + i.id,
-                title: `${isVideo ? 'مونتاج فيديو' : 'تنفيذ تصميم'}: ${i.title}`,
+                id: 'auto-edit-' + i.id,
+                source: 'content',
+                contentId: i.id,
+                title: `مونتاج: ${i.title}`,
                 clientId: i.clientId,
-                categoryKey: isVideo ? 'editing' : 'design',
-                priority: 'high',
+                categoryKey: 'editing',
+                categoryLabel: 'مونتاج فيديو',
+                priority: i.date === todayStr ? 'high' : 'medium',
                 dueDate: i.date || todayStr,
-                status: 'pending',
-                waitingReason: null,
-                notes: isVideo ? (i.hook ? `الهوك: ${i.hook}` : '') : (i.designBrief || ''),
-                isManual: false,
-                sourceType: 'content',
-                sourceId: i.id
+                status: isDone ? 'completed' : (i.status === 'waiting' ? 'waiting' : 'pending'),
+                waitingReason: i.waitingReason || null,
+                notes: `المنصة: ${i.platform} • المرحلة: ${i.stage}`,
+                raw: i
             });
-        } else if (isPlanningStage) {
+        } else if (isDesign && isEditingStage && !isDone) {
             tasks.push({
-                id: 'sys-plan-' + i.id,
-                title: `كتابة واعتماد اسكريبت: ${i.title}`,
+                id: 'auto-design-' + i.id,
+                source: 'content',
+                contentId: i.id,
+                title: `تصميم: ${i.title}`,
+                clientId: i.clientId,
+                categoryKey: 'design',
+                categoryLabel: 'تصميم جرافيك',
+                priority: i.date === todayStr ? 'high' : 'medium',
+                dueDate: i.date || todayStr,
+                status: isDone ? 'completed' : (i.status === 'waiting' ? 'waiting' : 'pending'),
+                waitingReason: i.waitingReason || null,
+                notes: `المنصة: ${i.platform} • المرحلة: ${i.stage}`,
+                raw: i
+            });
+        } else if (isPlanningStage && !isDone) {
+            tasks.push({
+                id: 'auto-plan-' + i.id,
+                source: 'content',
+                contentId: i.id,
+                title: `كتابة وتخطيط: ${i.title}`,
                 clientId: i.clientId,
                 categoryKey: 'planning',
+                categoryLabel: 'تخطيط واسكريبت',
                 priority: 'medium',
                 dueDate: i.date || todayStr,
-                status: 'pending',
-                waitingReason: null,
-                notes: i.body || '',
-                isManual: false,
-                sourceType: 'content',
-                sourceId: i.id
+                status: isDone ? 'completed' : (i.status === 'waiting' ? 'waiting' : 'pending'),
+                waitingReason: i.waitingReason || null,
+                notes: `الهدف: ${i.goal || 'Awareness'} • ${i.platform}`,
+                raw: i
             });
-        } else if (isSchedulingStage) {
+        } else if (isReadyToSchedule && !isDone) {
             tasks.push({
-                id: 'sys-sched-' + i.id,
-                title: `جدولة ونشر محتوى: ${i.title} (${i.platform})`,
+                id: 'auto-sched-' + i.id,
+                source: 'content',
+                contentId: i.id,
+                title: `جدولة ونشر: ${i.title}`,
                 clientId: i.clientId,
                 categoryKey: 'scheduling',
+                categoryLabel: 'جدولة ونشر',
                 priority: 'high',
                 dueDate: i.date || todayStr,
-                status: 'pending',
+                status: isDone ? 'completed' : 'pending',
                 waitingReason: null,
-                notes: 'جاهز للنشر على المنصة المحددة',
-                isManual: false,
-                sourceType: 'content',
-                sourceId: i.id
+                notes: `جاهز للنشر على ${i.platform}`,
+                raw: i
             });
         }
     });
 
-    // 4. Clients without a Content Plan
-    (AppState.clients || []).filter(c => !c.archived).forEach(c => {
-        if (!c.contentPlan) {
+    // 4. Automated Ads Tasks from Active Campaigns
+    (AppState.adsCampaigns || []).forEach(ad => {
+        if (ad.status === 'active' || ad.status === 'optimizing') {
             tasks.push({
-                id: 'sys-client-plan-' + c.id,
-                title: `إعداد خطة المحتوى الشهرية لعميل: ${c.name}`,
-                clientId: c.id,
-                categoryKey: 'planning',
-                priority: 'high',
+                id: 'auto-ad-' + ad.id,
+                source: 'ads',
+                title: `متابعة إعلان: ${ad.name} (${ad.platform})`,
+                clientId: ad.clientId,
+                categoryKey: 'ads',
+                categoryLabel: 'إدارة إعلانات',
+                priority: 'medium',
                 dueDate: todayStr,
                 status: 'pending',
                 waitingReason: null,
-                notes: 'العميل بانتظار إعداد خطة المنصات والتسليمات',
-                isManual: false,
-                sourceType: 'client',
-                sourceId: c.id
+                notes: `الميزانية: ${ad.budget} • الهدف: ${ad.goal}`,
+                raw: ad
             });
         }
-    });
-
-    // 5. Active Ad Campaigns
-    (AppState.adsCampaigns || []).filter(a => a.status === 'active').forEach(a => {
-        tasks.push({
-            id: 'sys-ad-' + a.id,
-            title: `متابعة وتحسين إعلانات: ${a.name} (${a.platform})`,
-            clientId: a.clientId,
-            categoryKey: 'ads',
-            priority: 'medium',
-            dueDate: todayStr,
-            status: 'pending',
-            waitingReason: null,
-            notes: `الميزانية: ${(Number(a.budget)||0).toLocaleString()} ج.م - تم صرف: ${(Number(a.spend)||0).toLocaleString()} ج.م`,
-            isManual: false,
-            sourceType: 'ad',
-            sourceId: a.id
-        });
     });
 
     return tasks;
 }
 
-// Review Queue Rendering & Workflow Transition
+// 4. Review Queue (Phase 11 - Content Waiting for Approval)
 function renderReviewQueue() {
-    const queueContainer = document.getElementById('review-queue-container');
-    if (!queueContainer) return;
+    const container = document.getElementById('review-queue-container');
+    if (!container) return;
 
-    const reviewItems = (AppState.contentItems || []).filter(i => !i.archived && (i.stage === '🔍 مراجعة' || i.stage === 'مراجعة'));
-
+    const reviewItems = (AppState.contentItems || []).filter(i => !i.archived && (i.stage === '🔍 مراجعة' || i.stage.includes('مراجعة')));
+    
     if (reviewItems.length === 0) {
-        queueContainer.innerHTML = '';
-        queueContainer.classList.add('hidden');
+        container.classList.add('hidden');
+        container.innerHTML = '';
         return;
     }
 
-    queueContainer.classList.remove('hidden');
-    queueContainer.innerHTML = `
-        <div class="bg-gradient-to-tr from-amber-50 to-orange-50/40 p-5 rounded-3xl border-2 border-amber-200/90 shadow-soft space-y-4">
-            <div class="flex items-center justify-between pb-2 border-b border-amber-200/60">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm font-bold">
-                        <i class="fa-solid fa-clipboard-check"></i>
+    container.classList.remove('hidden');
+    container.innerHTML = `
+        <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 space-y-3 shadow-soft">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-bold">
+                        <i class="fa-solid fa-magnifying-glass"></i>
                     </div>
-                    <div>
-                        <h3 class="font-black text-slate-900 text-sm">طابور المراجعة والاعتماد (Review Queue)</h3>
-                        <p class="text-[11px] text-slate-500">العناصر الجاهزة بانتظار موافقتك أو إعادتها للتعديل</p>
-                    </div>
+                    <h3 class="font-extrabold text-xs text-amber-950">طابور المراجعة والاعتماد (Review Queue)</h3>
+                    <span class="bg-amber-200/80 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full">${reviewItems.length} بانتظار قرارك</span>
                 </div>
-                <span class="bg-amber-200 text-amber-900 font-extrabold text-xs px-2.5 py-1 rounded-full">${reviewItems.length} بانتظار الاعتماد</span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 ${reviewItems.map(item => {
                     const client = (AppState.clients || []).find(c => c.id === item.clientId) || { name: 'عميل' };
                     return `
-                        <div class="p-4 bg-white rounded-2xl border border-amber-200/80 shadow-xs flex flex-col justify-between space-y-3">
-                            <div class="space-y-1.5">
-                                <div class="flex items-center justify-between gap-2">
-                                    <span class="font-bold text-slate-900 text-xs break-words">${item.title}</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700">${item.platform}</span>
+                        <div class="bg-white p-3.5 rounded-xl border border-amber-200/80 shadow-2xs flex flex-col justify-between space-y-2.5">
+                            <div class="space-y-1">
+                                <div class="flex items-center justify-between text-[10px]">
+                                    <span class="font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">${client.name}</span>
+                                    <span class="font-semibold text-slate-500">${item.platform} • ${item.type}</span>
                                 </div>
-                                <div class="text-[11px] text-slate-500">${client.name} • ${item.type} • تاريخ: ${item.date}</div>
-                                ${item.hook ? `<div class="p-2 bg-slate-50 rounded-xl text-[11px] text-slate-600 break-words border border-slate-100"><span class="font-bold text-amber-700">الهوك:</span> ${item.hook}</div>` : ''}
-                                ${item.designBrief ? `<div class="p-2 bg-slate-50 rounded-xl text-[11px] text-slate-600 break-words border border-slate-100"><span class="font-bold text-indigo-700">بريف التصميم:</span> ${item.designBrief}</div>` : ''}
+                                <h4 class="font-bold text-xs text-slate-900 break-words">${item.title}</h4>
                             </div>
 
-                            <div class="flex items-center justify-between pt-2 border-t border-slate-100 gap-2">
-                                <button onclick="viewFullScript('${item.id}')" class="text-slate-500 hover:text-slate-800 text-[11px] font-bold cursor-pointer">
-                                    <i class="fa-solid fa-eye ml-1"></i> معاينة كاملة
+                            <div class="flex items-center gap-1.5 pt-1 border-t border-slate-100 text-xs">
+                                <button onclick="handleReviewApprove('${item.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 rounded-lg text-xs transition-colors cursor-pointer flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-check text-[10px]"></i> اعتماد ✓
                                 </button>
-                                <div class="flex items-center gap-1.5">
-                                    <button onclick="handleReviewNeedsChanges('${item.id}')" class="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs cursor-pointer transition-colors">
-                                        <i class="fa-solid fa-rotate-left ml-1"></i> طلب تعديلات
-                                    </button>
-                                    <button onclick="handleReviewApprove('${item.id}')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer transition-colors">
-                                        <i class="fa-solid fa-check ml-1"></i> اعتماد ✓
-                                    </button>
-                                </div>
+                                <button onclick="handleReviewNeedsChanges('${item.id}')" class="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold py-1.5 rounded-lg text-xs transition-colors cursor-pointer flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-rotate-left text-[10px]"></i> طلب تعديل ✏️
+                                </button>
+                                <button onclick="editContentItem('${item.id}')" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs cursor-pointer" title="معاينة وتعديل">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
                             </div>
                         </div>
                     `;
@@ -393,155 +316,235 @@ function renderReviewQueue() {
     `;
 }
 
-function handleReviewApprove(contentId) {
-    const item = (AppState.contentItems || []).find(i => i.id === contentId);
-    if (!item) return;
-
-    item.stage = '📦 جاهز للجدولة';
-    saveState();
-    renderAll();
-    showToast("success", "تم الاعتماد بنجاح! 🚀", `أصبح "${item.title.slice(0, 25)}..." جاهزاً للجدولة.`);
+function handleReviewApprove(itemId) {
+    const item = (AppState.contentItems || []).find(i => i.id === itemId);
+    if (item) {
+        item.stage = '📦 جاهز للجدولة';
+        saveState();
+        renderAll();
+        showToast("success", "تم الاعتماد بنجاح! 🚀", `أصبح "${item.title}" في مرحلة (جاهز للجدولة).`);
+    }
 }
 
-function handleReviewNeedsChanges(contentId) {
-    const item = (AppState.contentItems || []).find(i => i.id === contentId);
-    if (!item) return;
-
-    const note = prompt("اكتب الملاحظات أو التعديلات المطلوبة لإعادتها للمونتير / المصمم:", item.revisionNote || "");
-    if (note === null) return;
-
-    item.stage = '✂️ مونتاج / تصميم';
-    item.revisionNote = note;
-    saveState();
-    renderAll();
-    showToast("info", "تمت الإعادة للتعديل", `تم نقل المحتوى إلى مرحلة المونتاج/التصميم مع الملاحظات.`);
+function handleReviewNeedsChanges(itemId) {
+    const note = prompt("يرجى كتابة ملاحظات التعديل المطلوبة:", "يرجى تعديل ألوان الفيديو وضبط الصوت");
+    if (note !== null) {
+        const item = (AppState.contentItems || []).find(i => i.id === itemId);
+        if (item) {
+            item.stage = '✂️ مونتاج / تصميم';
+            item.shootNotes = (item.shootNotes ? item.shootNotes + " | " : "") + `ملاحظات المراجعة: ${note}`;
+            saveState();
+            renderAll();
+            showToast("info", "تم إرجاع المحتوى للتعديل", "تمت إعادة المحتوى لمرحلة المونتاج/التصميم مع الملاحظات.");
+        }
+    }
 }
 
-// Unified Task Actions
+// 5. Clean Row-Based Tasks List Render
+function renderTasksList() {
+    const container = document.getElementById('tasks-list-container');
+    if (!container) return;
+
+    const allTasks = collectAllSystemTasks();
+    const categoryFilter = AppState.tasksActiveCategory || 'all';
+    const clientFilter = AppState.tasksClientFilter || 'ALL';
+    const statusFilter = AppState.tasksStatusFilter || 'ALL';
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    let filtered = allTasks;
+
+    if (categoryFilter !== 'all') {
+        filtered = filtered.filter(t => t.categoryKey === categoryFilter);
+    }
+
+    if (clientFilter !== 'ALL') {
+        filtered = filtered.filter(t => t.clientId === clientFilter);
+    }
+
+    if (statusFilter === 'pending') {
+        filtered = filtered.filter(t => t.status === 'pending');
+    } else if (statusFilter === 'waiting') {
+        filtered = filtered.filter(t => t.status === 'waiting');
+    } else if (statusFilter === 'completed') {
+        filtered = filtered.filter(t => t.status === 'completed');
+    }
+
+    // Sort: 1. Overdue first, 2. Today, 3. Upcoming, 4. Waiting, 5. Completed
+    filtered.sort((a, b) => {
+        if (a.status === 'completed' && b.status !== 'completed') return 1;
+        if (a.status !== 'completed' && b.status === 'completed') return -1;
+        if (a.status === 'waiting' && b.status !== 'waiting') return 1;
+        if (a.status !== 'waiting' && b.status === 'waiting') return -1;
+
+        const isOverdueA = a.dueDate && a.dueDate < todayStr;
+        const isOverdueB = b.dueDate && b.dueDate < todayStr;
+        if (isOverdueA && !isOverdueB) return -1;
+        if (!isOverdueA && isOverdueB) return 1;
+
+        return (a.dueDate || '9999').localeCompare(b.dueDate || '9999');
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="bg-white rounded-2xl p-10 border border-slate-200/80 text-center space-y-3 shadow-soft">
+                <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center text-xl mx-auto">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <h4 class="font-bold text-sm text-slate-800">لا توجد مهام مطابقة للفلاتر</h4>
+                <p class="text-xs text-slate-400">جميع المهام في هذا القسم منجزة أو لا توجد أعمال مسجلة حالياً.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft overflow-hidden">
+            <div class="divide-y divide-slate-100">
+                ${filtered.map(task => {
+                    const client = (AppState.clients || []).find(c => c.id === task.clientId) || { name: 'عام' };
+                    const isDone = task.status === 'completed';
+                    const isWaiting = task.status === 'waiting';
+                    const isOverdue = !isDone && !isWaiting && task.dueDate && task.dueDate < todayStr;
+                    const isToday = !isDone && !isWaiting && task.dueDate === todayStr;
+
+                    let statusBadge = '';
+                    if (isDone) {
+                        statusBadge = '<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-emerald-200/60">مكتملة ✓</span>';
+                    } else if (isWaiting) {
+                        statusBadge = `<span class="bg-amber-50 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md border border-amber-200/60 flex items-center gap-1"><i class="fa-solid fa-hourglass-half text-[9px]"></i> ${task.waitingReason || 'في الانتظار'}</span>`;
+                    } else if (isOverdue) {
+                        statusBadge = '<span class="bg-rose-50 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-rose-200/60">متأخرة ⚠️</span>';
+                    } else if (isToday) {
+                        statusBadge = '<span class="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-indigo-200/60">اليوم 🔥</span>';
+                    } else {
+                        statusBadge = `<span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-md">${task.dueDate || '-'}</span>`;
+                    }
+
+                    return `
+                        <div class="p-3.5 hover:bg-slate-50 flex items-center justify-between gap-3 transition-colors ${isDone ? 'opacity-60 bg-slate-50/50' : ''}">
+                            <!-- Left: Checkbox & Title Details -->
+                            <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <button onclick="toggleUnifiedTaskDone('${task.id}')" class="w-5 h-5 rounded-lg border ${isDone ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 hover:border-brand-500 bg-white'} flex items-center justify-center text-xs shrink-0 cursor-pointer transition-colors" title="${isDone ? 'إعادة فتح' : 'إنجاز المهمة'}">
+                                    ${isDone ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
+                                </button>
+
+                                <div class="min-w-0 flex-1 space-y-0.5">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <h4 class="font-bold text-xs text-slate-900 truncate ${isDone ? 'line-through text-slate-400' : ''}">${task.title}</h4>
+                                        <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200/60">${task.categoryLabel}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-[11px] text-slate-400">
+                                        ${task.clientId ? `<span class="font-semibold text-brand-600 hover:underline cursor-pointer" onclick="navigateToClientWorkspace('${task.clientId}')">${client.name}</span>` : '<span>بدون عميل</span>'}
+                                        ${task.notes ? `<span>• ${task.notes}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Status Badge, Waiting toggle, Actions -->
+                            <div class="flex items-center gap-2 shrink-0">
+                                ${statusBadge}
+                                
+                                ${!isDone ? `
+                                    <button onclick="promptTaskWaiting('${task.id}')" class="p-1 text-slate-400 hover:text-amber-600 rounded text-xs transition-colors cursor-pointer" title="${isWaiting ? 'إلغاء وضع الانتظار' : 'تحويل لوضع الانتظار (Waiting)'}">
+                                        <i class="fa-solid ${isWaiting ? 'fa-play text-emerald-600' : 'fa-pause'}"></i>
+                                    </button>
+                                ` : ''}
+
+                                ${task.contentId ? `
+                                    <button onclick="editContentItem('${task.contentId}')" class="p-1 text-slate-400 hover:text-brand-600 rounded text-xs transition-colors cursor-pointer" title="فتح قطعة المحتوى">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                    </button>
+                                ` : ''}
+
+                                ${task.source === 'manual' ? `
+                                    <button onclick="deleteManualTask('${task.id}')" class="p-1 text-slate-400 hover:text-rose-600 rounded text-xs transition-colors cursor-pointer" title="حذف المهمة">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        </div>
+    `;
+}
+
+// 6. Unified Task Actions & State Handlers
 function toggleUnifiedTaskDone(taskId) {
-    // Check manual tasks
-    const manualTask = (AppState.tasks || []).find(t => t.id === taskId);
-    if (manualTask) {
-        manualTask.status = manualTask.status === 'completed' ? 'pending' : 'completed';
-        saveState();
-        renderAll();
-        return;
-    }
-
-    // Check urgent tasks legacy
-    const urgentTask = (AppState.urgentTasks || []).find(u => u.id === taskId);
-    if (urgentTask) {
-        urgentTask.done = !urgentTask.done;
-        saveState();
-        renderAll();
-        return;
-    }
-
-    // System tasks
-    if (taskId.startsWith('sys-edit-')) {
-        const cId = taskId.replace('sys-edit-', '');
-        const item = (AppState.contentItems || []).find(i => i.id === cId);
+    if (taskId.startsWith('auto-edit-') || taskId.startsWith('auto-design-') || taskId.startsWith('auto-plan-') || taskId.startsWith('auto-sched-')) {
+        const contentId = taskId.replace(/^auto-[a-z]+-/, '');
+        const item = (AppState.contentItems || []).find(i => i.id === contentId);
         if (item) {
-            item.stage = '🔍 مراجعة';
+            item.stage = item.stage === '✅ تم النشر' ? '💡 فكرة' : '✅ تم النشر';
             saveState();
             renderAll();
-            showToast("success", "تم إرسال المحتوى للمراجعة 🔍", `انتقل "${item.title.slice(0,25)}..." إلى طابور المراجعة.`);
+            showToast("success", "تم تحديث المهمة", `تم تحديث حالة محتوى "${item.title.slice(0, 20)}..."`);
         }
-    } else if (taskId.startsWith('sys-sched-')) {
-        const cId = taskId.replace('sys-sched-', '');
-        const item = (AppState.contentItems || []).find(i => i.id === cId);
-        if (item) {
-            item.stage = '✅ تم النشر';
+    } else if (taskId.startsWith('tsk-')) {
+        const task = (AppState.tasks || []).find(t => t.id === taskId);
+        if (task) {
+            task.status = task.status === 'completed' ? 'pending' : 'completed';
             saveState();
             renderAll();
-            showToast("success", "تم تأكيد النشر! 🎉", `تم تحديث حالة المحتوى إلى تم النشر.`);
+            showToast("success", "تم تحديث المهمة", task.status === 'completed' ? "تم إنجاز المهمة بنجاح ✓" : "تمت إعادة فتح المهمة.");
         }
-    } else if (taskId.startsWith('sys-plan-')) {
-        const cId = taskId.replace('sys-plan-', '');
-        const item = (AppState.contentItems || []).find(i => i.id === cId);
-        if (item) {
-            item.stage = '🎬 جاهز للتصوير';
-            saveState();
-            renderAll();
-            showToast("success", "تم تجهيز الاسكريبت", `المحتوى جاهز الآن للتصوير.`);
-        }
+    } else {
+        toggleUrgentTask(taskId);
     }
 }
 
 function promptTaskWaiting(taskId) {
-    const reasons = [
-        "Waiting for Client (بانتظار العميل)",
-        "Waiting for Assets (بانتظار الماتريال/الصور)",
-        "Waiting for Approval (بانتظار الاعتماد)",
-        "Waiting for Payment (بانتظار الدفعة)",
-        "Other (أخرى)"
-    ];
-
-    const selectedReason = prompt("اختر سبب التعليق أو اكتبه:\n1. Waiting for Client\n2. Waiting for Assets\n3. Waiting for Approval\n4. Waiting for Payment\n5. إلغاء التعليق والعودة للنشط", "Waiting for Client");
-    if (selectedReason === null) return;
-
-    let targetTask = (AppState.tasks || []).find(t => t.id === taskId);
-    if (!targetTask) {
-        // If it's a legacy or dynamic task, convert to manual state item
-        const collected = collectAllSystemTasks().find(t => t.id === taskId);
-        if (collected) {
-            targetTask = {
-                id: 'tsk-' + Date.now(),
-                title: collected.title,
-                clientId: collected.clientId,
-                type: collected.categoryKey,
-                priority: collected.priority,
-                dueDate: collected.dueDate,
-                status: 'pending',
-                waitingReason: null,
-                notes: collected.notes
-            };
-            if (!AppState.tasks) AppState.tasks = [];
-            AppState.tasks.push(targetTask);
+    const task = (AppState.tasks || []).find(t => t.id === taskId);
+    if (task) {
+        if (task.status === 'waiting') {
+            task.status = 'pending';
+            task.waitingReason = null;
+            saveState();
+            renderAll();
+            showToast("info", "تم استئناف المهمة", "تمت إعادة المهمة للحالة النشطة.");
+        } else {
+            const reason = prompt("ما هو سبب الانتظار / التعليق؟", "Waiting for Client");
+            if (reason) {
+                task.status = 'waiting';
+                task.waitingReason = reason;
+                saveState();
+                renderAll();
+                showToast("info", "في الانتظار ⏳", `تم نقل المهمة لوضع الانتظار (${reason}).`);
+            }
         }
+        return;
     }
 
-    if (targetTask) {
-        if (selectedReason === '5' || selectedReason === 'active' || selectedReason === '') {
-            targetTask.status = 'pending';
-            targetTask.waitingReason = null;
-            showToast("success", "تم تفعيل المهمة", "أصبحت المهمة نشطة وفي جدول العمل.");
-        } else {
-            targetTask.status = 'waiting';
-            targetTask.waitingReason = selectedReason.includes('(') ? selectedReason.split('(')[0].trim() : selectedReason;
-            showToast("info", "تم تعليق المهمة ⏳", `تم وضع المهمة في حالة الانتظار (${targetTask.waitingReason}).`);
+    if (taskId.startsWith('auto-')) {
+        const contentId = taskId.replace(/^auto-[a-z]+-/, '');
+        const item = (AppState.contentItems || []).find(i => i.id === contentId);
+        if (item) {
+            if (item.status === 'waiting') {
+                item.status = 'pending';
+                item.waitingReason = null;
+                saveState();
+                renderAll();
+                showToast("info", "تم استئناف العمل", "تمت إزالة وضع الانتظار عن المحتوى.");
+            } else {
+                const reason = prompt("ما هو سبب تعليق هذا المحتوى؟", "Waiting for Client Approval");
+                if (reason) {
+                    item.status = 'waiting';
+                    item.waitingReason = reason;
+                    saveState();
+                    renderAll();
+                    showToast("info", "تم التعليق ⏳", `تم تعليق المحتوى بسبب: ${reason}`);
+                }
+            }
         }
-        saveState();
-        renderAll();
     }
 }
 
 function deleteManualTask(taskId) {
-    if (confirm("هل تريد حذف هذه المهمة؟")) {
+    if (confirm("هل أنت متأكد من حذف هذه المهمة اليدوية؟")) {
         AppState.tasks = (AppState.tasks || []).filter(t => t.id !== taskId);
-        AppState.urgentTasks = (AppState.urgentTasks || []).filter(u => u.id !== taskId);
         saveState();
         renderAll();
         showToast("info", "تم الحذف", "تمت إزالة المهمة بنجاح.");
     }
-}
-
-function setTasksCategoryFilter(catKey) {
-    AppState.tasksCategoryFilter = catKey;
-    renderTasksTab();
-}
-
-function setTasksClientFilter(clientId) {
-    AppState.tasksClientFilter = clientId;
-    renderTasksTab();
-}
-
-function setTasksStatusFilter(statusVal) {
-    AppState.tasksStatusFilter = statusVal;
-    renderTasksTab();
-}
-
-function setTasksPriorityFilter(priorityVal) {
-    AppState.tasksPriorityFilter = priorityVal;
-    renderTasksTab();
 }

@@ -1,35 +1,57 @@
 /**
  * ==========================================================================
- * Koksh Workspace OS — Action-First Dashboard & Top 3 Focus Engine
- * Phase 11: Top 3 Focus ("ركز على ده الآن"), Up Next, Attention & Bottom Analytics
+ * Koksh Workspace OS — Premium Action-First Dashboard
+ * Top 3 Focus ("ركز على ده الآن"), Today's Priority, Up Next & Calm Analytics
  * ==========================================================================
  */
 
 function toggleFocusMode() {
     AppState.focusMode = !AppState.focusMode;
-    const body = document.body;
     const btn = document.getElementById('focus-mode-toggle-btn') || document.getElementById('btn-toggle-focus');
     const analyticsSec = document.getElementById('dash-analytics-section');
 
     if (AppState.focusMode) {
         if (btn) {
-            btn.classList.add('bg-brand-600', 'text-white');
-            btn.classList.remove('bg-slate-100', 'text-slate-700');
+            btn.classList.add('bg-brand-600', 'text-white', 'border-transparent');
+            btn.classList.remove('bg-slate-100', 'text-slate-700', 'border-slate-200/60');
             btn.innerHTML = '<i class="fa-solid fa-eye-slash text-xs"></i> <span>وضع التركيز (مفعل)</span>';
         }
         if (analyticsSec) analyticsSec.classList.add('hidden');
-        showToast("info", "وضع التركيز 🎯", "تم إخفاء التحليلات للتركيز الكامل على إنجاز مهام اليوم.");
+        showToast("info", "وضع التركيز 🎯", "تم إخفاء المؤشرات الجانبية للتركيز على مهام اليوم.");
     } else {
         if (btn) {
-            btn.classList.remove('bg-brand-600', 'text-white');
-            btn.classList.add('bg-slate-100', 'text-slate-700');
-            btn.innerHTML = '<i class="fa-solid fa-crosshairs text-xs"></i> <span>وضع التركيز (Focus Mode)</span>';
+            btn.classList.remove('bg-brand-600', 'text-white', 'border-transparent');
+            btn.classList.add('bg-slate-100', 'text-slate-700', 'border-slate-200/60');
+            btn.innerHTML = '<i class="fa-solid fa-bullseye text-xs"></i> <span>وضع التركيز (Focus Mode)</span>';
         }
         if (analyticsSec) analyticsSec.classList.remove('hidden');
     }
 }
 
+function updateGreetingText() {
+    const bannerGreeting = document.getElementById('banner-greeting-text');
+    const bannerDate = document.getElementById('banner-date-text');
+    
+    if (bannerGreeting) {
+        const hour = new Date().getHours();
+        let greeting = "صباح الخير يا Koksh ☀️";
+        if (hour >= 12 && hour < 17) greeting = "مساء الخير يا Koksh ☕";
+        else if (hour >= 17 || hour < 4) greeting = "مساء الخير يا Koksh 🌙";
+        bannerGreeting.textContent = greeting;
+    }
+
+    if (bannerDate) {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        try {
+            bannerDate.textContent = new Date().toLocaleDateString('ar-EG', options);
+        } catch (e) {
+            bannerDate.textContent = new Date().toISOString().slice(0, 10);
+        }
+    }
+}
+
 function renderDashboard() {
+    updateGreetingText();
     renderTop3Focus();
     renderTodaysFocus();
     renderUpNext();
@@ -37,7 +59,7 @@ function renderDashboard() {
     renderAnalytics();
 }
 
-// 1. TOP 3 FOCUS: "ركز على ده الآن" (Phase 11)
+// 1. TOP 3 FOCUS: "ركز على ده الآن" (FOCUS NOW)
 function renderTop3Focus() {
     const container = document.getElementById('top-3-focus-container');
     if (!container) return;
@@ -72,18 +94,18 @@ function renderTop3Focus() {
 
     if (top3.length === 0) {
         container.innerHTML = `
-            <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-white p-6 rounded-3xl border-2 border-emerald-200 shadow-soft flex items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl shadow-xs">
-                        <i class="fa-solid fa-trophy"></i>
+            <div class="bg-gradient-to-r from-emerald-50/80 via-teal-50/40 to-white p-5 rounded-2xl border border-emerald-200/80 shadow-soft flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg shadow-xs">
+                        <i class="fa-solid fa-check"></i>
                     </div>
                     <div>
-                        <h3 class="font-black text-slate-900 text-sm">كل الأعمال ذات الأولوية منجزة ✓</h3>
+                        <h3 class="font-extrabold text-slate-900 text-sm">كل الأعمال ذات الأولوية منجزة ✓</h3>
                         <p class="text-xs text-slate-500 mt-0.5">لا توجد مهام متأخرة أو أعمال حرجة تتطلب تدخلك الآن.</p>
                     </div>
                 </div>
-                <button onclick="switchTab('tasks')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs shadow-xs cursor-pointer">
-                    فتح كل المهام ↗
+                <button onclick="switchTab('tasks')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-2xs cursor-pointer transition-colors">
+                    إدارة المهام ↗
                 </button>
             </div>
         `;
@@ -91,41 +113,41 @@ function renderTop3Focus() {
     }
 
     container.innerHTML = `
-        <div class="bg-gradient-to-l from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-white/10">
+        <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-soft space-y-4 border border-slate-800">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-black text-sm shadow-md">
+                    <div class="w-7 h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-xs shadow-xs">
                         <i class="fa-solid fa-bullseye"></i>
                     </div>
                     <div>
-                        <h3 class="font-black text-sm text-white">ركز على ده الآن (Top 3 Focus)</h3>
-                        <p class="text-[11px] text-slate-300">أهم 3 مهام مطلوب إنجازها فوراً مرتبة بالأولوية</p>
+                        <h3 class="font-extrabold text-sm text-white">ركز على ده الآن (Focus Now)</h3>
+                        <p class="text-[11px] text-slate-400">أهم 3 مهام مطلوب إنجازها مرتبة بالأولوية القصوى</p>
                     </div>
                 </div>
                 <button onclick="switchTab('tasks')" class="text-xs text-indigo-300 hover:text-white font-bold cursor-pointer transition-colors">
-                    إدارة المهام (${actionable.length}) ↗
+                    إدارة كل المهام (${actionable.length}) ↗
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                 ${top3.map((item, idx) => {
                     const client = (AppState.clients || []).find(c => c.id === item.clientId) || { name: 'عام' };
                     const isOverdue = item.dueDate && item.dueDate < todayStr;
                     return `
-                        <div class="p-4 bg-white/10 hover:bg-white/15 rounded-2xl border ${isOverdue ? 'border-rose-400/60 bg-rose-950/30' : 'border-white/10'} backdrop-blur-md flex flex-col justify-between space-y-3 transition-all">
+                        <div class="p-3.5 bg-slate-800/80 hover:bg-slate-800 rounded-xl border ${isOverdue ? 'border-rose-500/40 bg-rose-950/20' : 'border-slate-700/60'} flex flex-col justify-between space-y-3 transition-all">
                             <div class="space-y-1.5">
                                 <div class="flex items-center justify-between">
                                     <span class="w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] flex items-center justify-center">${idx + 1}</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${isOverdue ? 'bg-rose-500/80 text-white' : 'bg-white/20 text-slate-200'}">
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${isOverdue ? 'bg-rose-500 text-white' : 'bg-slate-700 text-slate-200'}">
                                         ${isOverdue ? 'متأخر ⚠️' : (item.dueDate === todayStr ? 'مطلوب اليوم' : item.dueDate)}
                                     </span>
                                 </div>
                                 <h4 class="font-bold text-white text-xs break-words leading-relaxed">${item.title}</h4>
-                                <span class="text-[11px] text-indigo-200 block">${client.name}</span>
+                                <span class="text-[11px] text-slate-400 block">${client.name}</span>
                             </div>
 
-                            <button onclick="toggleUnifiedTaskDone('${item.id}')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-all">
-                                <i class="fa-solid fa-check"></i>
+                            <button onclick="toggleUnifiedTaskDone('${item.id}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer transition-colors">
+                                <i class="fa-solid fa-check text-[10px]"></i>
                                 <span>تم الإنجاز ✓</span>
                             </button>
                         </div>
@@ -154,7 +176,7 @@ function buildPriorityQueue() {
             actionLabel: 'فتح استوديو التصوير 🎬',
             actionHandler: () => navigateToShootSession(s.id),
             icon: 'fa-solid fa-video',
-            iconBg: 'bg-rose-500 text-white'
+            iconBg: 'bg-rose-600 text-white'
         });
     });
 
@@ -171,7 +193,7 @@ function buildPriorityQueue() {
             actionLabel: 'فتح المحتوى ↗',
             actionHandler: () => editContentItem(i.id),
             icon: 'fa-solid fa-layer-group',
-            iconBg: 'bg-indigo-600 text-white'
+            iconBg: 'bg-brand-600 text-white'
         });
     });
 
@@ -204,18 +226,18 @@ function renderTodaysFocus() {
 
     if (!heroItem) {
         container.innerHTML = `
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl font-bold shadow-xs">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg font-bold">
                         <i class="fa-solid fa-check-double"></i>
                     </div>
                     <div>
-                        <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider block mb-0.5">ماذا أفعل الآن؟ (Current Priority)</span>
-                        <h3 class="text-base font-black text-slate-900 leading-snug">جميع مهام اليوم ذات الأولوية منجزة بنجاح! 🎉</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">لا توجد جلسات تصوير أو منشورات مستعجلة الآن. يمكنك جدولة محتوى جديد أو مراجعة الأداء.</p>
+                        <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">ماذا أفعل الآن؟ (Current Priority)</span>
+                        <h3 class="text-sm font-extrabold text-slate-900 mt-0.5">جميع أولويات اليوم منجزة بنجاح 🎉</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">لا توجد جلسات تصوير أو منشورات مستعجلة الآن. يمكنك جدولة محتوى جديد أو مراجعة الحسابات.</p>
                     </div>
                 </div>
-                <button onclick="openNewContentModal()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-xs cursor-pointer whitespace-nowrap">
+                <button onclick="openNewContentModal()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-2xs cursor-pointer whitespace-nowrap transition-colors">
                     + جدولة محتوى جديد
                 </button>
             </div>
@@ -224,25 +246,25 @@ function renderTodaysFocus() {
     }
 
     container.innerHTML = `
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div class="flex items-start gap-3.5 min-w-0 flex-1">
-                <div class="w-12 h-12 rounded-2xl ${heroItem.iconBg} flex items-center justify-center text-lg font-bold shadow-xs shrink-0 mt-0.5">
+                <div class="w-10 h-10 rounded-xl ${heroItem.iconBg} flex items-center justify-center text-sm font-bold shadow-2xs shrink-0 mt-0.5">
                     <i class="${heroItem.icon}"></i>
                 </div>
                 <div class="min-w-0 flex-1 space-y-1">
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200">
-                            التركيز الحالي (Top Priority)
+                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 border border-brand-200/60">
+                            الأولوية الحالية (Top Priority)
                         </span>
                         ${heroItem.clientId ? `<button onclick="navigateToClientWorkspace('${heroItem.clientId}')" class="text-[10px] font-bold text-slate-500 hover:text-brand-600 hover:underline">مساحة العميل ↗</button>` : ''}
                     </div>
-                    <h3 class="text-base md:text-lg font-black text-slate-900 leading-snug break-words">${heroItem.title}</h3>
+                    <h3 class="text-sm md:text-base font-extrabold text-slate-900 leading-snug break-words">${heroItem.title}</h3>
                     <p class="text-xs text-slate-500 font-medium break-words">${heroItem.subtitle}</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
-                <button id="hero-action-btn" class="bg-brand-600 hover:bg-brand-700 text-white font-black px-5 py-2.5 rounded-2xl text-xs flex items-center gap-2 shadow-sm transition-all cursor-pointer">
+                <button id="hero-action-btn" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer">
                     <span>${heroItem.actionLabel}</span>
                 </button>
             </div>
@@ -261,14 +283,14 @@ function renderUpNext() {
     const nextItems = queue.slice(1, 4);
 
     if (nextItems.length === 0) {
-        container.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs font-semibold">لا توجد عناصر إضافية في قائمة الانتظار لليوم.</div>`;
+        container.innerHTML = `<div class="p-4 bg-white rounded-2xl border border-slate-200/80 text-center text-slate-400 text-xs font-semibold">لا توجد عناصر إضافية في قائمة الانتظار لليوم.</div>`;
         return;
     }
 
     container.innerHTML = nextItems.map(item => `
-        <div class="p-3.5 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-100 flex items-center justify-between gap-3 transition-colors cursor-pointer" onclick="handleUpNextClick('${item.type}', '${item.id}')">
+        <div class="p-3 bg-white hover:bg-slate-50 rounded-xl border border-slate-200/80 flex items-center justify-between gap-3 transition-colors cursor-pointer" onclick="handleUpNextClick('${item.type}', '${item.id}')">
             <div class="flex items-center gap-3 min-w-0 flex-1">
-                <div class="w-8 h-8 rounded-xl ${item.iconBg} flex items-center justify-center text-xs font-bold shrink-0">
+                <div class="w-7 h-7 rounded-lg ${item.iconBg} flex items-center justify-center text-xs font-bold shrink-0">
                     <i class="${item.icon}"></i>
                 </div>
                 <div class="min-w-0 flex-1">
@@ -339,18 +361,18 @@ function renderNeedsAttention() {
 
     if (attentionItems.length === 0) {
         container.innerHTML = `
-            <div class="col-span-full py-4 px-6 bg-slate-50 rounded-2xl border border-slate-200/80 text-center text-slate-500 text-xs font-semibold flex items-center justify-center gap-2">
+            <div class="col-span-full py-4 px-5 bg-white rounded-2xl border border-slate-200/80 text-center text-slate-500 text-xs font-semibold flex items-center justify-center gap-2">
                 <i class="fa-solid fa-shield-check text-emerald-600"></i>
-                <span>لا توجد تنبيهات عاجلة تتطلب تدخلك الآن. جميع الحسابات منتظمة!</span>
+                <span>لا توجد تنبيهات معلقة. جميع الحسابات منتظمة!</span>
             </div>
         `;
         return;
     }
 
     container.innerHTML = attentionItems.map(item => `
-        <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-soft flex flex-col justify-between space-y-3">
+        <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-soft flex flex-col justify-between space-y-3">
             <div class="flex items-start gap-3 min-w-0">
-                <div class="w-9 h-9 rounded-xl ${item.icon.split(' ').slice(2).join(' ')} flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                <div class="w-8 h-8 rounded-xl ${item.icon.split(' ').slice(2).join(' ')} flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                     <i class="${item.icon.split(' ').slice(0, 2).join(' ')}"></i>
                 </div>
                 <div class="min-w-0 flex-1">
@@ -358,7 +380,7 @@ function renderNeedsAttention() {
                     <p class="text-[11px] text-slate-400 font-medium break-words mt-0.5">${item.desc}</p>
                 </div>
             </div>
-            <button onclick="(${item.handler.toString()})()" class="w-full ${item.btnColor} font-bold py-2 rounded-xl text-xs transition-colors cursor-pointer">
+            <button onclick="(${item.handler.toString()})()" class="w-full ${item.btnColor} font-bold py-1.5 rounded-xl text-xs transition-colors cursor-pointer">
                 ${item.btnText}
             </button>
         </div>
@@ -387,8 +409,8 @@ function renderAnalytics() {
 
     const colEl = document.getElementById('dash-kpi-mrr');
     const colSub = document.getElementById('dash-kpi-collected-rate');
-    if (colEl) colEl.textContent = `${finRate}%`;
-    if (colSub) colSub.textContent = `${totalPaid.toLocaleString()} / ${totalMRR.toLocaleString()} ج.م`;
+    if (colEl) colEl.textContent = `${totalMRR.toLocaleString()} ج.م`;
+    if (colSub) colSub.textContent = `${finRate}% محصل (${totalPaid.toLocaleString()} ج.م)`;
 }
 
 function toggleUrgentTask(taskId) {
