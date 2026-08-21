@@ -1,0 +1,55 @@
+/* ==========================================================================
+   Koksh Workspace OS — Custom Stylesheet
+   ========================================================================== */
+
+* {
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #f8fafc;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 9999px;
+}
+
+body {
+    font-family: 'Cairo', sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
+    overflow-x: hidden;
+}
+
+/* Drag & Drop Visual Feedback */
+.drag-over {
+    border: 2px dashed #4f46e5 !important;
+    background-color: #eef2ff !important;
+}
+
+/* Typography & Layout Helpers */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.transition-sidebar {
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
