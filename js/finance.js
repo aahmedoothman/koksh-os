@@ -36,11 +36,11 @@ function renderFinanceTab() {
         return `
             <tr class="hover:bg-slate-50 transition-colors">
                 <td class="py-3 px-4 font-bold text-slate-900">
-                    <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-[10px]">
+                    <div class="flex items-center gap-2 cursor-pointer group" onclick="navigateToClientWorkspace('${client.id}')">
+                        <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-[10px] group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                             ${client.name.charAt(0)}
                         </div>
-                        <span class="block">${client.name}</span>
+                        <span class="block group-hover:text-emerald-700 group-hover:underline transition-colors">${client.name}</span>
                     </div>
                 </td>
                 <td class="py-3 px-4 font-black text-slate-900">${ret.toLocaleString()} ج.م</td>
@@ -48,7 +48,7 @@ function renderFinanceTab() {
                 <td class="py-3 px-4 font-black text-rose-600">${due.toLocaleString()} ج.م</td>
                 <td class="py-3 px-4 whitespace-nowrap">${badge}</td>
                 <td class="py-3 px-4 text-center whitespace-nowrap">
-                    <button onclick="openPaymentForClient('${client.id}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-3 py-1 rounded-xl text-xs transition-all">
+                    <button onclick="openPaymentForClient('${client.id}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold px-3 py-1 rounded-xl text-xs transition-all cursor-pointer">
                         + تسجيل دفعة
                     </button>
                 </td>

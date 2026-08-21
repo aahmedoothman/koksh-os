@@ -1,7 +1,7 @@
 /**
  * ==========================================================================
  * Koksh Workspace OS — Content (المحتوى) Module
- * Includes: Calendar View + Master Table View + CSV Export
+ * Phase 4: Interconnected Master Table & Calendar (Content ↔ Client ↔ Shoot)
  * ==========================================================================
  */
 
@@ -90,7 +90,7 @@ function renderCalendarGrid(filteredItems) {
                     <span class="w-6 h-6 rounded-lg ${isToday ? 'bg-brand-600 text-white font-black' : 'text-slate-700 font-bold'} flex items-center justify-center text-xs">
                         ${d}
                     </span>
-                    <button onclick="openNewContentForDate('${dateKey}')" class="text-slate-300 hover:text-brand-600 text-[10px] p-0.5" title="إضافة محتوى">
+                    <button onclick="openNewContentForDate('${dateKey}')" class="text-slate-300 hover:text-brand-600 text-[10px] p-0.5" title="إضافة محتوى لهذا اليوم">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
@@ -110,7 +110,7 @@ function renderCalendarGrid(filteredItems) {
                             <div draggable="true" 
                                  ondragstart="handleDragStart(event, '${item.id}')"
                                  onclick="editContentItem('${item.id}')"
-                                 class="p-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl cursor-grab active:cursor-grabbing text-[10px] font-bold text-slate-800 shadow-2xs truncate flex items-center gap-1.5 select-none"
+                                 class="p-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl cursor-grab active:cursor-grabbing text-[10px] font-bold text-slate-800 shadow-2xs truncate flex items-center gap-1.5 select-none transition-colors"
                                  title="${item.title} (${client.name})">
                                 <i class="${iconClass} shrink-0"></i>
                                 <span class="truncate flex-1">${item.title}</span>
@@ -174,6 +174,7 @@ function renderMasterTableView(items) {
 
     tbody.innerHTML = items.map(item => {
         const client = AppState.clients.find(c => c.id === item.clientId) || { name: 'غير محدد' };
+        const matchingShoot = AppState.shootSessions.find(s => (s.items && s.items.includes(item.id)) || (s.clientId === item.clientId && s.date === item.date));
         const platIcons = {
             'Instagram': 'fa-brands fa-instagram text-pink-600',
             'TikTok': 'fa-brands fa-tiktok text-slate-900',
@@ -184,18 +185,29 @@ function renderMasterTableView(items) {
 
         return `
             <tr class="hover:bg-slate-50/70 transition-colors">
+                <!-- Clickable Client Column (Content ↔ Client) -->
                 <td class="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">
-                    <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-[10px]">
+                    <div class="flex items-center gap-2 cursor-pointer group" onclick="navigateToClientWorkspace('${item.clientId}')" title="فتح مساحة عمل ${client.name}">
+                        <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-black text-[10px] group-hover:bg-brand-600 group-hover:text-white transition-colors">
                             ${client.name.charAt(0)}
                         </div>
-                        <span class="truncate max-w-[130px]">${client.name}</span>
+                        <span class="truncate max-w-[130px] group-hover:text-brand-600 group-hover:underline transition-colors">${client.name}</span>
                     </div>
                 </td>
-                <td class="py-3 px-4">
-                    <div class="font-bold text-slate-800 text-xs line-clamp-1">${item.title}</div>
+
+                <!-- Content Title with Direct Shoot Link if linked -->
+                <td class="py-3 px-4 cursor-pointer" onclick="editContentItem('${item.id}')">
+                    <div class="flex items-center gap-2">
+                        <div class="font-bold text-slate-800 text-xs line-clamp-1 hover:text-brand-600 transition-colors">${item.title}</div>
+                        ${matchingShoot ? `
+                            <span onclick="event.stopPropagation(); navigateToShootSession('${matchingShoot.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-200 shrink-0 cursor-pointer" title="فتح جلسة التصوير">
+                                <i class="fa-solid fa-video text-[9px]"></i> جلسة: ${matchingShoot.date}
+                            </span>
+                        ` : ''}
+                    </div>
                     ${item.hook ? `<div class="text-[11px] text-slate-400 line-clamp-1 mt-0.5">${item.hook}</div>` : ''}
                 </td>
+
                 <td class="py-3 px-4 whitespace-nowrap">
                     <div class="flex items-center gap-1.5 font-bold text-[11px]">
                         <i class="${platIcons[item.platform] || 'fa-solid fa-cube'}"></i>
@@ -203,7 +215,9 @@ function renderMasterTableView(items) {
                         <span class="text-slate-400 font-medium">(${item.type})</span>
                     </div>
                 </td>
+
                 <td class="py-3 px-4 whitespace-nowrap font-bold text-slate-700 text-xs">${item.date}</td>
+
                 <td class="py-3 px-4 whitespace-nowrap">
                     <select onchange="updateItemStage('${item.id}', this.value)" class="bg-slate-50 border border-slate-200 text-[11px] font-bold rounded-lg px-2 py-1 text-slate-800 focus:outline-none">
                         <option value="فكرة" ${item.stage === 'فكرة' ? 'selected' : ''}>💡 فكرة</option>
@@ -214,15 +228,16 @@ function renderMasterTableView(items) {
                         <option value="تم النشر" ${item.stage === 'تم النشر' ? 'selected' : ''}>✅ تم النشر</option>
                     </select>
                 </td>
+
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                     <div class="flex items-center justify-center gap-1.5">
-                        <button onclick="viewFullScript('${item.id}')" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs" title="عرض الاسكريبت">
+                        <button onclick="viewFullScript('${item.id}')" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs cursor-pointer" title="عرض الاسكريبت">
                             <i class="fa-solid fa-file-lines"></i>
                         </button>
-                        <button onclick="editContentItem('${item.id}')" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs" title="تعديل">
+                        <button onclick="editContentItem('${item.id}')" class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs cursor-pointer" title="تعديل">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button onclick="deleteContentItem('${item.id}')" class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center text-xs" title="حذف">
+                        <button onclick="deleteContentItem('${item.id}')" class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center text-xs cursor-pointer" title="حذف">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>

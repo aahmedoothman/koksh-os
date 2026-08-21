@@ -18,6 +18,7 @@ const INITIAL_DB = {
             hook: "لو بتشطب شقتك الأيام دي، إياك تقع في الغلطة رقم 2 اللي بتكلفك آلاف!",
             body: "1. اختيار الإضاءة قبل الفرش.\n2. إهمال نقاط الكهرباء خلف الشاشات.\n3. اختيار دهانات لامعة في الحوائط العريضة.",
             cta: "ابعتلنا مساحة شقتك في رسالة وهنبعتلك مقايسة مجانية فوراً!",
+            shootNotes: "تصوير كلوز على الدهانات وإضاءة الصالون",
             shots: [
                 { id: "st-1", text: "لقطة كلوز على عيب في دهان حائط مع حركة يد للمهندس", done: true },
                 { id: "st-2", text: "لقطة وايد للصالون بعد التشطيب النهائي والإضاءة المودرن", done: true }
@@ -28,6 +29,7 @@ const INITIAL_DB = {
             hook: "تفتكروا الباستا دي فيها كام سعر حراري؟ الرقم هيصدمك!",
             body: "الشيف بيحضر الصوص بمكون سري خالي من الدسم تماماً وبنفس الطعم الكريمي الغني.",
             cta: "منشن صاحبك اللي عامل دايت وقله العشا النهاردة عند Weal's Food!",
+            shootNotes: "تصوير بطيء لسقوط الصوص والتذوق",
             shots: [
                 { id: "st-3", text: "لقطة بطيئة نزول الوايت صوص على الباستا الساخنة", done: true },
                 { id: "st-4", text: "ريأكشن وتذوق وانبهار", done: false }
@@ -38,6 +40,7 @@ const INITIAL_DB = {
             hook: "إزاي تضمن إن الجمبري اللي بتشتريه بلدي وسويسي 100% ومش مجمد؟",
             body: "3 علامات في اللون والملمس وحجم الرأس.",
             cta: "اطلب أوردر الفريش النهاردة قبل الساعة 2 الظهر!",
+            shootNotes: "تصوير ماكرو للجمبري الطازج",
             shots: []
         },
         {
@@ -45,6 +48,7 @@ const INITIAL_DB = {
             hook: "لو جعان بلاش تتفرج على الفيديو ده لحد الآخر!",
             body: "لقطات قريبة جداً مع صوت السيزلنج وشلال الجبنة السايحة.",
             cta: "جرب ساندوتش البرجر الجديد من همبوزة واستمتع بخصم 20% بكود KOKSH20!",
+            shootNotes: "صوت ASMR وسيزلنج على الجريل",
             shots: [
                 { id: "st-5", text: "سيزلنج اللحم على الجريل الساخن", done: false }
             ]
@@ -54,6 +58,7 @@ const INITIAL_DB = {
             hook: "من كتلة خشب صامتة إلى قطعة فنية تعيش معاك العمر كله!",
             body: "مراحل التصنيع اليدوي، الصنفرة، والتلميع في ورشة الأسواني.",
             cta: "احجز تصميمك الخاص بالمقاسات اللي تناسب بيتك!",
+            shootNotes: "",
             shots: []
         }
     ],
@@ -75,10 +80,10 @@ const INITIAL_DB = {
         { id: "ad-3", clientId: "c-4", name: "حملة افتتاح فرع الكوربة", platform: "TikTok Ads", budget: 4000, spend: 1800, results: "85K Views + 420 زيارة", status: "active" }
     ],
     urgentTasks: [
-        { id: "urg-1", text: "مراجعة مونتاج ريلز Weal's Food النهائي قبل النشر", done: true },
-        { id: "urg-2", text: "إرسال اسكريبتات جلسة تصوير السبت لعميل Weals Constructions", done: false },
-        { id: "urg-3", text: "تحصيل الدفعة المتبقية من مطعم همبوزة (5,000 ج.م)", done: false },
-        { id: "urg-4", text: "جدولة بوست الجمبري السويسي لصفحة أسماك السويسي", done: true }
+        { id: "urg-1", text: "مراجعة مونتاج ريلز Weal's Food النهائي قبل النشر", done: true, clientId: "c-2", contentId: "cnt-2" },
+        { id: "urg-2", text: "إرسال اسكريبتات جلسة تصوير السبت لعميل Weals Constructions", done: false, clientId: "c-1", shootId: "shoot-1" },
+        { id: "urg-3", text: "تحصيل الدفعة المتبقية من مطعم همبوزة (5,000 ج.م)", done: false, clientId: "c-4" },
+        { id: "urg-4", text: "جدولة بوست الجمبري السويسي لصفحة أسماك السويسي", done: true, clientId: "c-3", contentId: "cnt-3" }
     ]
 };
 
@@ -88,8 +93,15 @@ let AppState = {
     selectedDate: '2026-08-21',
     plannerCurrentMonth: new Date(2026, 7, 1),
     sidebarCollapsed: false,
+    focusMode: false,
+    previousTab: 'dashboard',
+    shootMode: false,
+    activeShootModeSessionId: null,
+    readNotifications: [],
+    notificationFilter: 'all',
     currentWorkspaceClientId: null,
     currentWorkspaceTab: 'overview',
+    clientContentSubView: 'list',
     currentScriptViewing: null,
     ...loadState()
 };
@@ -116,7 +128,8 @@ function saveState() {
             contentItems: AppState.contentItems,
             shootSessions: AppState.shootSessions,
             adsCampaigns: AppState.adsCampaigns || [],
-            urgentTasks: AppState.urgentTasks
+            urgentTasks: AppState.urgentTasks,
+            readNotifications: AppState.readNotifications || []
         };
         localStorage.setItem('koksh_os_v3_db', JSON.stringify(payload));
     } catch (e) {
@@ -132,6 +145,7 @@ function resetToDemoData() {
         AppState.shootSessions = demoCopy.shootSessions;
         AppState.adsCampaigns = demoCopy.adsCampaigns;
         AppState.urgentTasks = demoCopy.urgentTasks;
+        AppState.readNotifications = [];
         saveState();
         renderAll();
         showToast("success", "تمت الاستعادة", "تم إعادة ضبط جميع البيانات النموذجية بنجاح!");
@@ -163,6 +177,7 @@ function importBackupJSON(event) {
                 AppState.shootSessions = parsed.shootSessions || [];
                 AppState.adsCampaigns = parsed.adsCampaigns || [];
                 AppState.urgentTasks = parsed.urgentTasks || [];
+                AppState.readNotifications = parsed.readNotifications || [];
                 saveState();
                 renderAll();
                 showToast("success", "تم الاستيراد", "تمت استعادة البيانات بنجاح!");
@@ -203,7 +218,7 @@ function showToast(type, title, message) {
             <span class="font-bold block text-slate-900">${title}</span>
             <span class="text-slate-500 font-medium text-[11px]">${message}</span>
         </div>
-        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 mr-2">
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 mr-2 cursor-pointer">
             <i class="fa-solid fa-xmark"></i>
         </button>
     `;
@@ -246,6 +261,7 @@ function applySidebarState() {
 
 function populateClientDropdowns() {
     const cntSelect = document.getElementById('cnt-client-id');
+    const quickSelect = document.getElementById('quick-idea-client-id');
     const shootSelect = document.getElementById('shoot-client-id');
     const paySelect = document.getElementById('payment-client-id');
     const filterContent = document.getElementById('content-client-filter');
@@ -253,6 +269,7 @@ function populateClientDropdowns() {
     const opts = AppState.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
     if (cntSelect) cntSelect.innerHTML = opts;
+    if (quickSelect) quickSelect.innerHTML = opts;
     if (shootSelect) shootSelect.innerHTML = opts;
     if (paySelect) paySelect.innerHTML = opts;
 
@@ -264,6 +281,7 @@ function populateClientDropdowns() {
 }
 
 function updateBadges() {
+    if (typeof updateNotificationBadge === 'function') updateNotificationBadge();
     const todayItems = AppState.contentItems.filter(i => i.date === AppState.selectedDate).length;
     const todayEl = document.getElementById('today-badge-count');
     if (todayEl) todayEl.textContent = todayItems;

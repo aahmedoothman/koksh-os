@@ -1,6 +1,7 @@
 /**
  * ==========================================================================
  * Koksh Workspace OS — App Orchestration & Content Actions Module
+ * Phase 2: Progressive Disclosure & Quick Idea Creation
  * ==========================================================================
  */
 
@@ -30,9 +31,9 @@ function switchTab(tabId) {
     const titles = {
         dashboard: 'الرئيسية',
         today: 'اليوم',
+        clients: 'العملاء',
         content: 'المحتوى',
         shoots: 'التصوير',
-        clients: 'العملاء',
         finance: 'المالية'
     };
     const breadcrumb = document.getElementById('breadcrumb-title');
@@ -58,6 +59,115 @@ function closeModal(modalId) {
     if (el) el.classList.add('hidden');
 }
 
+// ================= GLOBAL ADD CONTROLS =================
+function toggleGlobalAddMenu(e) {
+    if (e) e.stopPropagation();
+    const menu = document.getElementById('global-add-menu');
+    if (!menu) return;
+    const isHidden = menu.classList.contains('hidden');
+    if (isHidden) {
+        menu.classList.remove('hidden');
+        menu.classList.add('dropdown-pop');
+    } else {
+        menu.classList.add('hidden');
+        menu.classList.remove('dropdown-pop');
+    }
+}
+
+function closeGlobalAddMenu() {
+    const menu = document.getElementById('global-add-menu');
+    if (menu) {
+        menu.classList.add('hidden');
+        menu.classList.remove('dropdown-pop');
+    }
+}
+
+function handleGlobalAdd(type) {
+    closeGlobalAddMenu();
+    switch (type) {
+        case 'content':
+            openNewContentModal();
+            break;
+        case 'quick-idea':
+            openQuickIdeaModal();
+            break;
+        case 'task':
+            openNewTaskModal();
+            break;
+        case 'shoot':
+            openNewShootModal();
+            break;
+        case 'client':
+            openNewClientModal();
+            break;
+        case 'collection':
+            openNewPaymentModal();
+            break;
+        case 'expense':
+            openNewExpenseModal();
+            break;
+        default:
+            openNewContentModal();
+    }
+}
+
+// ================= DEDICATED QUICK IDEA HANDLERS (PHASE 2) =================
+function openQuickIdeaModal() {
+    const form = document.getElementById('quick-idea-form');
+    if (form) form.reset();
+    openModal('quick-idea-modal');
+    setTimeout(() => {
+        const titleInput = document.getElementById('quick-idea-title');
+        if (titleInput) titleInput.focus();
+    }, 100);
+}
+
+function handleQuickIdeaSubmit(e) {
+    e.preventDefault();
+    const clientId = document.getElementById('quick-idea-client-id').value;
+    const title = document.getElementById('quick-idea-title').value.trim();
+    const platform = document.getElementById('quick-idea-platform').value || 'Instagram';
+
+    if (!title) return;
+
+    const newIdea = {
+        id: 'cnt-' + Date.now(),
+        clientId: clientId,
+        title: title,
+        platform: platform,
+        type: 'Reels / Short',
+        date: AppState.selectedDate || new Date().toISOString().slice(0, 10),
+        stage: 'فكرة',
+        hook: '',
+        body: '',
+        cta: '',
+        shootNotes: '',
+        shots: []
+    };
+
+    AppState.contentItems.unshift(newIdea);
+    saveState();
+    renderAll();
+    closeModal('quick-idea-modal');
+    showToast('success', 'تم حفظ الفكرة 💡', 'تم تسجيل الفكرة بنجاح في خطة المحتوى بحالة (فكرة).');
+}
+
+// ================= COLLAPSIBLE CONTENT MODAL HANDLERS (PHASE 2) =================
+function toggleScriptSection(forceState) {
+    const sec = document.getElementById('cnt-script-section');
+    const icon = document.getElementById('script-section-icon');
+    if (!sec) return;
+
+    const shouldOpen = typeof forceState === 'boolean' ? forceState : sec.classList.contains('hidden');
+    if (shouldOpen) {
+        sec.classList.remove('hidden');
+        if (icon) icon.classList.add('rotate-180');
+    } else {
+        sec.classList.add('hidden');
+        if (icon) icon.classList.remove('rotate-180');
+    }
+}
+
 function openNewContentModal() {
     const form = document.getElementById('content-form');
     if (form) form.reset();
@@ -67,6 +177,10 @@ function openNewContentModal() {
     if (titleEl) titleEl.textContent = "إضافة قطعة محتوى جديدة";
     const dateInput = document.getElementById('cnt-date');
     if (dateInput) dateInput.value = AppState.selectedDate || new Date().toISOString().slice(0, 10);
+    
+    // Collapse script section by default for progressive disclosure
+    toggleScriptSection(false);
+
     openModal('content-modal');
 }
 
@@ -84,13 +198,21 @@ function editContentItem(itemId) {
     document.getElementById('cnt-id').value = item.id;
     document.getElementById('cnt-client-id').value = item.clientId;
     document.getElementById('cnt-title').value = item.title;
-    document.getElementById('cnt-platform').value = item.platform;
-    document.getElementById('cnt-type').value = item.type;
-    document.getElementById('cnt-date').value = item.date;
-    document.getElementById('cnt-stage').value = item.stage;
+    document.getElementById('cnt-platform').value = item.platform || 'Instagram';
+    document.getElementById('cnt-type').value = item.type || 'Reels / Short';
+    document.getElementById('cnt-date').value = item.date || new Date().toISOString().slice(0, 10);
+    document.getElementById('cnt-stage').value = item.stage || 'فكرة';
     document.getElementById('cnt-hook').value = item.hook || '';
     document.getElementById('cnt-body').value = item.body || '';
     document.getElementById('cnt-cta').value = item.cta || '';
+    
+    const shootNotesEl = document.getElementById('cnt-shoot-notes');
+    if (shootNotesEl) shootNotesEl.value = item.shootNotes || '';
+
+    // If script details exist, expand accordion automatically
+    const hasScriptDetails = !!(item.hook || item.body || item.cta || item.shootNotes);
+    toggleScriptSection(hasScriptDetails);
+
     document.getElementById('content-modal-title').textContent = "تعديل قطعة المحتوى";
 }
 
@@ -99,13 +221,16 @@ function handleContentSubmit(e) {
     const editId = document.getElementById('cnt-id').value;
     const clientId = document.getElementById('cnt-client-id').value;
     const title = document.getElementById('cnt-title').value.trim();
-    const platform = document.getElementById('cnt-platform').value;
-    const type = document.getElementById('cnt-type').value;
-    const date = document.getElementById('cnt-date').value;
-    const stage = document.getElementById('cnt-stage').value;
+    const platform = document.getElementById('cnt-platform').value || 'Instagram';
+    const type = document.getElementById('cnt-type').value || 'Reels / Short';
+    const date = document.getElementById('cnt-date').value || (AppState.selectedDate || new Date().toISOString().slice(0, 10));
+    const stage = document.getElementById('cnt-stage').value || 'فكرة';
     const hook = document.getElementById('cnt-hook').value.trim();
     const body = document.getElementById('cnt-body').value.trim();
     const cta = document.getElementById('cnt-cta').value.trim();
+    const shootNotes = document.getElementById('cnt-shoot-notes')?.value.trim() || '';
+
+    if (!title) return;
 
     if (editId) {
         const item = AppState.contentItems.find(i => i.id === editId);
@@ -119,6 +244,7 @@ function handleContentSubmit(e) {
             item.hook = hook;
             item.body = body;
             item.cta = cta;
+            item.shootNotes = shootNotes;
             showToast("success", "تم التعديل", "تم تعديل قطعة المحتوى بنجاح!");
         }
     } else {
@@ -133,6 +259,7 @@ function handleContentSubmit(e) {
             hook: hook,
             body: body,
             cta: cta,
+            shootNotes: shootNotes,
             shots: []
         };
         AppState.contentItems.unshift(newItem);
@@ -163,6 +290,52 @@ function updateItemStage(itemId, newStage) {
     }
 }
 
+// ================= TASK & EXPENSE HANDLERS =================
+function openNewTaskModal() {
+    const form = document.getElementById('task-form');
+    if (form) form.reset();
+    openModal('task-modal');
+    setTimeout(() => {
+        const input = document.getElementById('task-text-input');
+        if (input) input.focus();
+    }, 100);
+}
+
+function handleTaskSubmit(e) {
+    e.preventDefault();
+    const input = document.getElementById('task-text-input');
+    const text = input ? input.value.trim() : '';
+    if (!text) return;
+
+    const newTask = {
+        id: 'urg-' + Date.now(),
+        text: text,
+        done: false
+    };
+    AppState.urgentTasks.unshift(newTask);
+    saveState();
+    renderAll();
+    closeModal('task-modal');
+    showToast('success', 'تمت إضافة المهمة', 'تم تسجيل المهمة بنجاح في قائمة المهام العاجلة.');
+}
+
+function openNewExpenseModal() {
+    const form = document.getElementById('expense-form');
+    if (form) form.reset();
+    openModal('expense-modal');
+}
+
+function handleExpenseSubmit(e) {
+    e.preventDefault();
+    const category = document.getElementById('expense-category').value;
+    const amount = Number(document.getElementById('expense-amount').value) || 0;
+    const notes = document.getElementById('expense-notes').value.trim();
+
+    closeModal('expense-modal');
+    showToast('info', 'تسجيل المصروف', `تم تسجيل مصروف بقيمة ${amount.toLocaleString()} ج.م (${category}) بنجاح.`);
+}
+
+// ================= SCRIPT VIEW & COPY =================
 function viewFullScript(itemId) {
     const item = AppState.contentItems.find(i => i.id === itemId);
     if (!item) return;
@@ -190,6 +363,56 @@ function copyCurrentScript() {
         });
     } else {
         showToast("info", "تم النسخ", text.slice(0, 50) + "...");
+    }
+}
+
+// ================= GLOBAL EVENT LISTENERS =================
+window.addEventListener('click', (e) => {
+    const menu = document.getElementById('global-add-menu');
+    const btn = document.getElementById('global-add-btn');
+    if (menu && !menu.classList.contains('hidden')) {
+        if (!menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
+            closeGlobalAddMenu();
+        }
+    }
+});
+
+
+// ================= INTERCONNECTED NAVIGATION HELPERS (PHASE 4) =================
+function navigateToClientWorkspace(clientId) {
+    if (!clientId) return;
+    AppState.previousTab = AppState.activeTab;
+    switchTab('clients');
+    openClientWorkspace(clientId);
+}
+
+function navigateToShootSession(shootId) {
+    if (!shootId) return;
+    AppState.previousTab = AppState.activeTab;
+    switchTab('shoots');
+    setTimeout(() => {
+        const shootEl = document.getElementById(`shoot-card-${shootId}`);
+        if (shootEl) {
+            shootEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            shootEl.classList.add('ring-2', 'ring-rose-500');
+            setTimeout(() => shootEl.classList.remove('ring-2', 'ring-rose-500'), 2000);
+        }
+    }, 100);
+}
+
+function navigateToContent(contentId) {
+    if (!contentId) return;
+    editContentItem(contentId);
+}
+
+function navigateBackFromWorkspace() {
+    if (AppState.previousTab && AppState.previousTab !== 'clients') {
+        const prev = AppState.previousTab;
+        AppState.previousTab = 'dashboard';
+        closeClientWorkspace();
+        switchTab(prev);
+    } else {
+        closeClientWorkspace();
     }
 }
 
