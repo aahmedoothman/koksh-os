@@ -309,7 +309,8 @@ function generateDefaultShots(contentId) {
     if (!item) return;
 
     if (!item.shots) item.shots = [];
-    const defaults = [\n        { id: 'st-' + Date.now() + '-1', text: '1. لقطة الهوك الافتتاحية والمشهد التعبيري (0 to 3s)', done: false },
+    const defaults = [
+        { id: 'st-' + Date.now() + '-1', text: '1. لقطة الهوك الافتتاحية والمشهد التعبيري (0 إلى 3 ثوانٍ)', done: false },
         { id: 'st-' + Date.now() + '-2', text: '2. تفاصيل المتن والـ B-Roll وشرح المشاهد العملية', done: false },
         { id: 'st-' + Date.now() + '-3', text: '3. لقطة الختام والدعوة المباشرة لاتخاذ إجراء (CTA)', done: false }
     ];

@@ -120,7 +120,7 @@ function renderTop3Focus() {
                         <i class="fa-solid fa-bullseye"></i>
                     </div>
                     <div>
-                        <h3 class="font-extrabold text-sm text-white">ركز على ده الآن (Focus Now)</h3>
+                        <h3 class="font-extrabold text-sm text-white">أولوياتك الآن</h3>
                         <p class="text-[11px] text-slate-400">أهم 3 مهام مطلوب إنجازها مرتبة بالأولوية القصوى</p>
                     </div>
                 </div>
@@ -254,7 +254,7 @@ function renderTodaysFocus() {
                 <div class="min-w-0 flex-1 space-y-1">
                     <div class="flex items-center gap-2">
                         <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 border border-brand-200/60">
-                            الأولوية الحالية (Top Priority)
+                            الأولوية الحالية
                         </span>
                         ${heroItem.clientId ? `<button onclick="navigateToClientWorkspace('${heroItem.clientId}')" class="text-[10px] font-bold text-slate-500 hover:text-brand-600 hover:underline">مساحة العميل ↗</button>` : ''}
                     </div>

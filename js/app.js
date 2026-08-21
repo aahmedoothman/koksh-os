@@ -45,7 +45,68 @@ function switchTab(tabId) {
     }
 
     renderAll();
+    if (tabId === 'content' && typeof applyResponsiveContentView === 'function') {
+        applyResponsiveContentView();
+    }
+    closeMobileSidebar();
 }
+
+function openMobileSidebar() {
+    if (window.innerWidth >= 1024) return;
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const button = document.getElementById('mobile-menu-btn');
+    if (sidebar) sidebar.classList.add('mobile-open');
+    if (overlay) overlay.classList.remove('hidden');
+    if (button) button.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('mobile-nav-open');
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const button = document.getElementById('mobile-menu-btn');
+    if (sidebar) sidebar.classList.remove('mobile-open');
+    if (overlay) overlay.classList.add('hidden');
+    if (button) button.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('mobile-nav-open');
+}
+
+function enhanceInteractiveControls() {
+    const iconLabels = {
+        'fa-trash': 'حذف',
+        'fa-pen': 'تعديل',
+        'fa-file-lines': 'عرض التفاصيل',
+        'fa-eye': 'معاينة',
+        'fa-pause': 'إيقاف مؤقت',
+        'fa-play': 'استئناف',
+        'fa-xmark': 'إغلاق',
+        'fa-chevron-right': 'التالي',
+        'fa-chevron-left': 'السابق'
+    };
+
+    document.querySelectorAll('button:not([aria-label])').forEach(button => {
+        if (button.textContent.trim()) return;
+        const title = button.getAttribute('title');
+        if (title) {
+            button.setAttribute('aria-label', title);
+            return;
+        }
+        const icon = button.querySelector('i');
+        if (!icon) return;
+        const match = Object.entries(iconLabels).find(([className]) => icon.classList.contains(className));
+        if (match) button.setAttribute('aria-label', match[1]);
+    });
+}
+
+window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1024) closeMobileSidebar();
+    applySidebarState();
+});
+
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeMobileSidebar();
+});
 
 function openModal(modalId) {
     const rawId = modalId.replace('-modal','');
@@ -998,4 +1059,5 @@ window.addEventListener('DOMContentLoaded', () => {
     if (shootDate) shootDate.value = todayStr;
 
     renderAll();
+    if (typeof applyResponsiveContentView === 'function') applyResponsiveContentView();
 });

@@ -456,6 +456,11 @@ function showToast(type, title, message) {
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
+    if (window.innerWidth < 1024) {
+        if (sidebar && sidebar.classList.contains('mobile-open')) closeMobileSidebar();
+        else openMobileSidebar();
+        return;
+    }
     AppState.sidebarCollapsed = !AppState.sidebarCollapsed;
     localStorage.setItem('koksh_sidebar_collapsed', AppState.sidebarCollapsed ? 'true' : 'false');
     applySidebarState();
@@ -465,7 +470,7 @@ function applySidebarState() {
     const sidebar = document.getElementById('sidebar');
     if (!sidebar) return;
     const texts = document.querySelectorAll('.sidebar-text');
-    const isCollapsed = AppState.sidebarCollapsed;
+    const isCollapsed = AppState.sidebarCollapsed && window.innerWidth >= 1024;
 
     if (isCollapsed) {
         sidebar.classList.remove('w-64');
@@ -542,4 +547,5 @@ function renderAll() {
     if (typeof renderClientsTab === 'function') renderClientsTab();
     if (typeof renderFinanceTab === 'function') renderFinanceTab();
     updateBadges();
+    if (typeof enhanceInteractiveControls === 'function') enhanceInteractiveControls();
 }

@@ -38,6 +38,185 @@ body {
     overflow-x: hidden;
 }
 
+:root {
+    --surface: #ffffff;
+    --surface-subtle: #f8fafc;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --brand: #4f46e5;
+}
+
+main .tab-content {
+    max-width: 1560px;
+    margin-inline: auto;
+}
+
+main .tab-content > .bg-white {
+    border-color: var(--border);
+}
+
+main h1, main h2, main h3, main h4 {
+    text-wrap: balance;
+}
+
+main p {
+    text-wrap: pretty;
+}
+
+main [class*="text-[10px]"] {
+    font-size: .6875rem !important;
+}
+
+main [class*="text-[11px]"] {
+    font-size: .75rem !important;
+}
+
+main button:not([class*="w-"]):not([class*="h-"]),
+main select,
+main input {
+    min-height: 2.25rem;
+}
+
+input[type="date"], input[type="month"], input[type="tel"], .numeric-value {
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+tbody tr:hover {
+    background: #f8fafc;
+}
+
+#tab-dashboard,
+#tab-today,
+#tab-tasks,
+#tab-clients,
+#tab-content,
+#tab-shoots,
+#tab-finance {
+    animation: pageEnter .18s ease-out;
+}
+
+@keyframes pageEnter {
+    from { opacity: .25; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+button, a, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 3px solid rgba(99, 102, 241, 0.28);
+    outline-offset: 2px;
+}
+
+@media (max-width: 1023px) {
+    #sidebar {
+        position: fixed;
+        inset-block: 0;
+        inset-inline-start: 0;
+        width: min(19rem, 86vw) !important;
+        transform: translateX(110%);
+    }
+
+    #sidebar.mobile-open {
+        transform: translateX(0);
+    }
+
+    body.mobile-nav-open {
+        overflow: hidden;
+    }
+
+    .app-header {
+        gap: .5rem;
+    }
+
+    .header-actions {
+        max-width: calc(100vw - 10rem);
+    }
+}
+
+@media (max-width: 639px) {
+    .app-header {
+        height: 3.75rem;
+    }
+
+    .app-header button {
+        min-width: 2.5rem;
+        min-height: 2.5rem;
+        padding-inline: .65rem;
+    }
+
+    .app-header #breadcrumb-title {
+        max-width: 5.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    main {
+        padding: 1rem !important;
+    }
+
+    main .tab-content {
+        gap: 1rem;
+    }
+
+    main .tab-content > div[class*="p-6"],
+    main .tab-content > div > div[class*="p-6"] {
+        padding: 1rem !important;
+    }
+
+    main h1 { font-size: 1.35rem !important; }
+    main h2 { font-size: 1rem !important; line-height: 1.55 !important; }
+    main h3 { line-height: 1.55 !important; }
+
+    main button {
+        min-height: 2.5rem;
+    }
+
+    main select, main input {
+        width: 100%;
+        min-height: 2.5rem;
+    }
+
+    #tasks-category-nav,
+    #workspace-tabs {
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        padding-bottom: .35rem;
+        scroll-snap-type: inline proximity;
+    }
+
+    #workspace-tabs > *, #tasks-category-nav > * {
+        scroll-snap-align: start;
+    }
+
+    #content-subview-calendar {
+        display: none !important;
+    }
+
+    #content-subview-table table,
+    #tab-finance table {
+        min-width: 760px;
+    }
+
+    #tab-finance .overflow-x-auto,
+    #content-subview-table .overflow-x-auto {
+        overscroll-behavior-inline: contain;
+    }
+
+    .rounded-3xl {
+        border-radius: 1.25rem !important;
+    }
+}
+
 /* Glassmorphism & Soft Layers */
 .glass-panel {
     background: rgba(255, 255, 255, 0.85);

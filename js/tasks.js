@@ -249,7 +249,7 @@ function collectAllSystemTasks() {
                 dueDate: todayStr,
                 status: 'pending',
                 waitingReason: null,
-                notes: `الميزانية: ${ad.budget} • الهدف: ${ad.goal}`,
+                notes: `الميزانية: ${ad.budget.toLocaleString('ar-EG')} ج.م • النتائج: ${ad.results || 'لا توجد نتائج مسجلة'}`,
                 raw: ad
             });
         }

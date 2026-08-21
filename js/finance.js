@@ -210,8 +210,8 @@ function renderFinanceTab() {
                         <td class="py-3 px-4 whitespace-nowrap text-slate-600 font-semibold text-xs">
                             ${tx.clientName ? `<span class="cursor-pointer hover:underline text-brand-600 font-bold" onclick="navigateToClientWorkspace('${tx.clientId}')">${tx.clientName}</span>` : '<span class="text-slate-400">عام</span>'}
                         </td>
-                        <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-600 text-xs">${tx.category}</td>
-                        <td class="py-3 px-4 whitespace-nowrap font-bold text-slate-700 text-xs">${tx.date}</td>
+                        <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-600 text-xs">${getFinanceCategoryLabel(tx.category)}</td>
+                        <td class="py-3 px-4 whitespace-nowrap font-bold text-slate-700 text-xs numeric-value">${tx.date}</td>
                         <td class="py-3 px-4 whitespace-nowrap ${amountClass} text-xs">
                             ${tx.isIncome ? '+' : '-'}${tx.amount.toLocaleString()} ج.م
                         </td>
@@ -221,9 +221,7 @@ function renderFinanceTab() {
                                     <i class="fa-solid fa-trash"></i>
                                 </button>
                             ` : `
-                                <button onclick="openPaymentForClient('${tx.clientId}')" class="text-emerald-700 hover:underline font-bold text-xs cursor-pointer" title="تعديل أو تحصيل إضافي">
-                                    تحصيل ↗
-                                </button>
+                                <span class="text-slate-300" aria-label="لا توجد إجراءات">—</span>
                             `}
                         </td>
                     </tr>
@@ -261,6 +259,22 @@ function renderFinanceTab() {
             `;
         }).join('');
     }
+}
+
+function getFinanceCategoryLabel(category) {
+    const labels = {
+        'Retainer / اشتراك شهري': 'اشتراك شهري',
+        Ads: 'إعلانات',
+        Production: 'إنتاج وتصوير',
+        Design: 'تصميم ومونتاج',
+        'Software & Tools': 'أدوات وبرامج',
+        Transportation: 'مواصلات',
+        Food: 'طعام ومشروبات',
+        Shopping: 'تسوق ومشتريات',
+        Bills: 'فواتير',
+        Other: 'أخرى'
+    };
+    return labels[category] || category;
 }
 
 function onFinanceMonthChange(val) {

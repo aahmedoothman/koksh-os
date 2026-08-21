@@ -54,7 +54,8 @@
     <div class="flex h-screen bg-slate-900 overflow-hidden relative">
 
         <!-- ================= SIDEBAR NAVIGATION ================= -->
-        <aside id="sidebar" class="w-64 bg-slate-950 text-slate-300 border-l border-slate-800/80 flex flex-col justify-between transition-all duration-300 shrink-0 relative z-30 shadow-xl">
+        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/55 backdrop-blur-sm z-40 hidden lg:hidden" onclick="closeMobileSidebar()"></div>
+        <aside id="sidebar" aria-label="التنقل الرئيسي" class="w-64 bg-slate-950 text-slate-300 border-l border-slate-800/80 flex flex-col justify-between transition-all duration-300 shrink-0 relative z-50 shadow-xl">
             <!-- Brand Logo & Quick Title -->
             <div class="p-5 border-b border-slate-800/60 flex items-center justify-between">
                 <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('dashboard')">
@@ -83,20 +84,20 @@
                 <!-- 1. Dashboard -->
                 <button id="nav-dashboard" onclick="switchTab('dashboard')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-brand-700 bg-brand-50 border border-brand-100/70 shadow-xs cursor-pointer">
                     <i class="fa-solid fa-house text-sm text-brand-600"></i>
-                    <span class="sidebar-text flex-1 text-right">الرئيسية (Dashboard)</span>
+                    <span class="sidebar-text flex-1 text-right">الرئيسية</span>
                 </button>
 
                 <!-- 2. Today's Execution -->
                 <button id="nav-today" onclick="switchTab('today')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer">
                     <i class="fa-solid fa-calendar-day text-sm text-slate-400"></i>
-                    <span class="sidebar-text flex-1 text-right">اليوم (Today)</span>
+                    <span class="sidebar-text flex-1 text-right">اليوم</span>
                     <span id="today-badge-count" class="sidebar-text text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-100 text-brand-800">0</span>
                 </button>
 
                 <!-- 3. Unified Tasks (Phase 11) -->
                 <button id="nav-tasks" onclick="switchTab('tasks')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer">
                     <i class="fa-solid fa-list-check text-sm text-slate-400"></i>
-                    <span class="sidebar-text flex-1 text-right">المهام (Tasks)</span>
+                    <span class="sidebar-text flex-1 text-right">المهام</span>
                     <span id="tasks-badge-count" class="sidebar-text text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">0</span>
                 </button>
 
@@ -107,7 +108,7 @@
                 <!-- 4. Clients Hub -->
                 <button id="nav-clients" onclick="switchTab('clients')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer">
                     <i class="fa-solid fa-users text-sm text-slate-400"></i>
-                    <span class="sidebar-text flex-1 text-right">العملاء (Clients)</span>
+                    <span class="sidebar-text flex-1 text-right">العملاء</span>
                     <span id="clients-badge-count" class="sidebar-text text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">0</span>
                 </button>
 
@@ -157,18 +158,21 @@
         <div class="flex-1 flex flex-col min-w-0 bg-slate-50 overflow-hidden relative">
 
             <!-- TOP APPLICATION BAR -->
-            <header class="h-16 bg-white border-b border-slate-200/80 px-4 md:px-8 flex items-center justify-between shrink-0 z-20 shadow-2xs">
+            <header class="app-header h-16 bg-white border-b border-slate-200/80 px-3 md:px-8 flex items-center justify-between shrink-0 z-20 shadow-2xs">
                 <!-- Breadcrumbs & Quick Title -->
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 md:gap-3 min-w-0">
+                    <button id="mobile-menu-btn" onclick="openMobileSidebar()" class="lg:hidden w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0" aria-label="فتح القائمة الرئيسية" aria-expanded="false">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
                     <span id="breadcrumb-title" class="font-black text-slate-900 text-sm md:text-base">الرئيسية</span>
                     <span class="text-slate-300">/</span>
                     <span class="text-xs text-slate-500 font-semibold hidden sm:inline">نظام تشغيل صانع المحتوى</span>
                 </div>
 
                 <!-- Global Action Header Tools -->
-                <div class="flex items-center gap-2.5">
+                <div class="header-actions flex items-center gap-2 md:gap-2.5 shrink-0">
                     <!-- Global Search & Command Bar (Ctrl + K) -->
-                    <button onclick="openCommandBar()" class="bg-slate-100 hover:bg-slate-200/80 text-slate-600 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer border border-slate-200/60 shadow-2xs">
+                    <button onclick="openCommandBar()" aria-label="فتح البحث والاختصارات" class="bg-slate-100 hover:bg-slate-200/80 text-slate-600 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer border border-slate-200/60 shadow-2xs">
                         <i class="fa-solid fa-magnifying-glass text-slate-400 text-xs"></i>
                         <span class="hidden md:inline">بحث واختصارات...</span>
                         <kbd class="hidden sm:inline-block bg-white px-1.5 py-0.5 rounded-md text-[10px] font-mono border border-slate-200 text-slate-400 shadow-2xs">Ctrl K</kbd>
@@ -176,7 +180,7 @@
 
                     <!-- Smart In-App Notification Center -->
                     <div class="relative">
-                        <button id="notification-center-btn" onclick="toggleNotificationCenter(event)" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 flex items-center justify-center text-xs relative transition-colors cursor-pointer border border-slate-200/60">
+                        <button id="notification-center-btn" onclick="toggleNotificationCenter(event)" aria-label="فتح مركز التنبيهات" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 flex items-center justify-center text-xs relative transition-colors cursor-pointer border border-slate-200/60">
                             <i class="fa-solid fa-bell"></i>
                             <span id="notif-badge-count" class="hidden absolute -top-1 -right-1 bg-rose-500 text-white font-extrabold text-[10px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-white animate-pulse">0</span>
                         </button>
@@ -205,16 +209,16 @@
                     </div>
 
                     <!-- Idea Inbox Trigger (Phase 10) -->
-                    <button onclick="openIdeaInboxModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-xs" title="صندوق الأفكار السريعة">
+                    <button onclick="openIdeaInboxModal()" aria-label="فتح صندوق الأفكار" class="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-xs" title="صندوق الأفكار السريعة">
                         <i class="fa-solid fa-inbox text-amber-600 text-xs"></i>
                         <span class="hidden sm:inline">صندوق الأفكار</span>
                     </button>
 
                     <!-- Fast Global Add (+) Button -->
                     <div class="relative">
-                        <button id="global-add-btn" onclick="toggleGlobalAddMenu(event)" class="bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-brand-500/20 transition-all cursor-pointer">
+                        <button id="global-add-btn" onclick="toggleGlobalAddMenu(event)" aria-label="فتح قائمة الإضافة السريعة" class="bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-brand-500/20 transition-all cursor-pointer">
                             <i class="fa-solid fa-plus text-xs"></i>
-                            <span>إضافة سريعة</span>
+                            <span class="hidden sm:inline">إضافة سريعة</span>
                             <i class="fa-solid fa-chevron-down text-[10px] opacity-70"></i>
                         </button>
 
@@ -285,7 +289,7 @@
                             </button>
                             <button onclick="openQuickIdeaModal()" class="bg-white text-brand-700 hover:bg-indigo-50 font-bold px-4 py-2.5 rounded-2xl text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer">
                                 <i class="fa-solid fa-lightbulb text-amber-500"></i>
-                                <span>+ فكرة سريعة</span>
+                                <span>فكرة سريعة</span>
                             </button>
                         </div>
                     </div>
@@ -294,11 +298,11 @@
                     <div id="top-3-focus-container"></div>
 
                     <!-- 2. SECTION 1: TODAY'S FOCUS (HERO SPOTLIGHT CARD) -->
-                    <div class="space-y-2.5">
+                    <div class="space-y-2.5 hidden" aria-hidden="true">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-brand-600 animate-ping"></span>
-                                <h2 class="font-black text-slate-900 text-sm">ماذا أفعل الآن؟ (Today's Focus)</h2>
+                                <h2 class="font-black text-slate-900 text-sm">الأولوية الحالية</h2>
                             </div>
                             <span class="text-[11px] text-slate-400 font-bold">الأولوية القصوى</span>
                         </div>
@@ -310,7 +314,7 @@
                         <div class="flex items-center justify-between">
                             <h2 class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
                                 <i class="fa-solid fa-forward-step text-slate-400"></i>
-                                <span>التالي مباشرة (Up Next)</span>
+                                <span>التالي مباشرة</span>
                             </h2>
                             <span class="text-[11px] text-slate-400 font-semibold">جاهز للتنفيذ فور انتهاء تركيزك</span>
                         </div>
@@ -322,7 +326,7 @@
                         <div class="flex items-center justify-between">
                             <h2 class="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
                                 <i class="fa-solid fa-bell text-amber-500"></i>
-                                <span>يحتاج انتباهك وقرارك (Needs Attention)</span>
+                                <span>يحتاج انتباهك وقرارك</span>
                             </h2>
                         </div>
                         <div id="needs-attention-container" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
@@ -333,7 +337,7 @@
                         <div class="flex items-center justify-between">
                             <h3 class="font-bold text-xs uppercase tracking-wider text-slate-400 flex items-center gap-2">
                                 <i class="fa-solid fa-chart-simple"></i>
-                                <span>مؤشرات الأداء الشهرية (Monthly Analytics & KPIs)</span>
+                                <span>مؤشرات الأداء الشهرية</span>
                             </h3>
                         </div>
 
@@ -420,12 +424,12 @@
                                     <i class="fa-solid fa-list-check"></i>
                                 </div>
                                 <div>
-                                    <h2 class="text-base font-black text-slate-900">مركز المهام والإنتاجية (Tasks & Productivity)</h2>
+                            <h2 class="text-base font-black text-slate-900">مركز المهام والإنتاجية</h2>
                                     <p class="text-xs text-slate-400 font-semibold">تجميع تلقائي لمهام المونتاج، التصميم، الإعلانات، والتخطيط مع المهام اليدوية</p>
                                 </div>
                             </div>
                             <button onclick="openNewTaskModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 rounded-2xl text-xs flex items-center gap-1.5 shadow-md cursor-pointer transition-all">
-                                <i class="fa-solid fa-plus text-[10px]"></i> + مهمة يدوية جديدة
+                                <i class="fa-solid fa-plus text-[10px]"></i> مهمة يدوية جديدة
                             </button>
                         </div>
 
@@ -495,7 +499,7 @@
                                 </div>
                                 <button onclick="openNewClientModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-4 py-2 rounded-2xl text-xs flex items-center gap-1.5 shadow-md shadow-brand-500/20 cursor-pointer">
                                     <i class="fa-solid fa-user-plus text-[10px]"></i>
-                                    <span>+ عميل جديد</span>
+                                    <span>عميل جديد</span>
                                 </button>
                             </div>
                         </div>
@@ -530,24 +534,24 @@
                             </div>
 
                             <!-- Workspace Sub-Navigation Tabs -->
-                            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 border-t border-slate-100 pt-3">
+                            <div id="workspace-tabs" class="flex items-center gap-1.5 overflow-x-auto pb-1 border-t border-slate-100 pt-3">
                                 <button id="ws-tab-overview" onclick="setWorkspaceTab('overview')" class="ws-nav-btn shrink-0 bg-slate-900 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer shadow-xs">
-                                    نظرة عامة (Overview)
+                                    نظرة عامة
                                 </button>
                                 <button id="ws-tab-content" onclick="setWorkspaceTab('content')" class="ws-nav-btn shrink-0 bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer">
                                     خطة المحتوى والاسكريبتات
                                 </button>
                                 <button id="ws-tab-production" onclick="setWorkspaceTab('production')" class="ws-nav-btn shrink-0 bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer">
-                                    التصوير والإنتاج (Shoots)
+                                    التصوير والإنتاج
                                 </button>
                                 <button id="ws-tab-growth" onclick="setWorkspaceTab('growth')" class="ws-nav-btn shrink-0 bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer">
-                                    الإعلانات والنمو (Ads)
+                                    الإعلانات والنمو
                                 </button>
                                 <button id="ws-tab-finance" onclick="setWorkspaceTab('finance')" class="ws-nav-btn shrink-0 bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer">
                                     كشف الحساب والمالية
                                 </button>
                                 <button id="ws-tab-assets" onclick="setWorkspaceTab('assets')" class="ws-nav-btn shrink-0 bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer">
-                                    الملفات والماتريال (Assets)
+                                    الملفات والمواد
                                 </button>
                             </div>
                         </div>
@@ -567,7 +571,7 @@
                                     <i class="fa-solid fa-layer-group"></i>
                                 </div>
                                 <div>
-                                    <h2 class="text-base font-black text-slate-900">إدارة ومتابعة المحتوى (Content Hub)</h2>
+                                <h2 class="text-base font-black text-slate-900">إدارة ومتابعة المحتوى</h2>
                                     <p class="text-xs text-slate-400 font-semibold">تخطيط وجدولة ومتابعة كافة قطع المحتوى عبر كل المنصات والعملاء</p>
                                 </div>
                             </div>
@@ -590,7 +594,7 @@
                                     <i class="fa-solid fa-file-csv"></i> تصدير CSV
                                 </button>
                                 <button onclick="openNewContentModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-brand-500/20 cursor-pointer">
-                                    <i class="fa-solid fa-plus text-[10px]"></i> + محتوى جديد
+                                    <i class="fa-solid fa-plus text-[10px]"></i> محتوى جديد
                                 </button>
                             </div>
                         </div>
@@ -720,11 +724,11 @@
                 <div id="tab-shoots" class="tab-content space-y-6 hidden">
                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div>
-                            <h2 class="text-base font-black text-slate-900">استوديو إدارة وتصوير جلسات العملاء (Shoots Studio)</h2>
-                            <p class="text-xs text-slate-400 font-semibold">متابعة الشوت ليست الميداني، إنجاز المشاهد، ونقل المحتوى المكتمل للمونتاج فوراً</p>
+                        <h2 class="text-base font-black text-slate-900">إدارة جلسات التصوير</h2>
+                        <p class="text-xs text-slate-400 font-semibold">تابع قائمة اللقطات، أنجز المشاهد، وانقل المحتوى المكتمل إلى المونتاج.</p>
                         </div>
                         <button onclick="openNewShootModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-2xl text-xs flex items-center gap-1.5 shadow-md shadow-rose-500/20 cursor-pointer">
-                            <i class="fa-solid fa-video text-[10px]"></i> + جلسة تصوير جديدة
+                            <i class="fa-solid fa-video text-[10px]"></i> جلسة تصوير جديدة
                         </button>
                     </div>
 
@@ -742,7 +746,7 @@
                                     <i class="fa-solid fa-wallet"></i>
                                 </div>
                                 <div>
-                                    <h2 class="text-base font-black text-slate-900">مركز الإدارة المالية والأرباح (Finance Hub)</h2>
+                                    <h2 class="text-base font-black text-slate-900">الإدارة المالية والأرباح</h2>
                                     <p class="text-xs text-slate-400 font-semibold">متابعة دقيقة للإيرادات، المصروفات التشغيلية، وصافي ربح البيزنس الحقيقي مع فصل المصاريف الشخصية</p>
                                 </div>
                             </div>
@@ -753,10 +757,10 @@
                                     <input type="month" id="finance-month-picker" onchange="onFinanceMonthChange(this.value)" class="bg-transparent text-xs font-bold text-slate-900 focus:outline-none cursor-pointer">
                                 </div>
                                 <button onclick="openNewExpenseModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1 shadow-xs cursor-pointer">
-                                    <i class="fa-solid fa-receipt text-[10px]"></i> + تسجيل مصروف
+                                    <i class="fa-solid fa-receipt text-[10px]"></i> تسجيل مصروف
                                 </button>
                                 <button onclick="openNewPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1 shadow-xs cursor-pointer">
-                                    <i class="fa-solid fa-plus text-[10px]"></i> + تحصيل دفعة عميل
+                                    <i class="fa-solid fa-plus text-[10px]"></i> تحصيل دفعة عميل
                                 </button>
                             </div>
                         </div>
@@ -830,7 +834,7 @@
                                     <i class="fa-solid fa-calculator"></i>
                                 </div>
                                 <div>
-                                    <h3 class="font-black text-sm text-white">ملخص نهاية الشهر (End of Month Summary)</h3>
+                                    <h3 class="font-black text-sm text-white">ملخص نهاية الشهر</h3>
                                     <p class="text-[11px] text-slate-300">إجابة مباشرة وسريعة: دخلت كام، صرفت كام، وصافي ربحك كام</p>
                                 </div>
                             </div>
@@ -871,7 +875,7 @@
                                 <div class="flex items-center gap-2">
                                     <h3 class="font-black text-slate-900 text-sm flex items-center gap-2">
                                         <i class="fa-solid fa-receipt text-indigo-600"></i>
-                                        <span>سجل المعاملات والعمليات المالية (Transactions Ledger)</span>
+                                        <span>سجل المعاملات المالية</span>
                                     </h3>
                                     <span id="fin-transactions-count" class="text-xs text-slate-400 font-bold"></span>
                                 </div>
@@ -932,7 +936,7 @@
                             <div>
                                 <h3 class="font-black text-slate-900 text-sm flex items-center gap-2">
                                     <i class="fa-solid fa-users text-brand-600"></i>
-                                    <span>متابعة مستحقات واشتراكات العملاء (Client Dues & Retainers)</span>
+                                    <span>مستحقات واشتراكات العملاء</span>
                                 </h3>
                                 <p class="text-[11px] text-slate-400 mt-0.5">تفاصيل الاشتراكات الشهرية لكل عميل، ما تم تحصيله، والمتبقي للتحصيل</p>
                             </div>
