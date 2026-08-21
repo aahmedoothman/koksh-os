@@ -203,7 +203,6 @@ function convertRawIdeaToContent(rawId) {
     const hookInput = document.getElementById('cnt-hook');
     if (hookInput && idea.notes) hookInput.value = idea.notes;
 
-    // Remove from raw inbox
     AppState.rawIdeas = (AppState.rawIdeas || []).filter(i => i.id !== rawId);
     saveState();
 }
@@ -354,18 +353,24 @@ function editContentItem(itemId) {
     if (designBriefEl) designBriefEl.value = item.designBrief || '';
     const captionEl = document.getElementById('cnt-caption');
     if (captionEl) captionEl.value = item.caption || '';
+    const designCtaEl = document.getElementById('cnt-design-cta');
+    if (designCtaEl) designCtaEl.value = item.cta || '';
 
     // Carousel fields
     const slidesEl = document.getElementById('cnt-slides-outline');
     if (slidesEl) slidesEl.value = item.slidesOutline || '';
     const carCaptionEl = document.getElementById('cnt-carousel-caption');
     if (carCaptionEl) carCaptionEl.value = item.caption || '';
+    const carCtaEl = document.getElementById('cnt-carousel-cta');
+    if (carCtaEl) carCtaEl.value = item.cta || '';
 
     // Story fields
     const storyContentEl = document.getElementById('cnt-story-content');
     if (storyContentEl) storyContentEl.value = item.storyContent || '';
     const interactionSelect = document.getElementById('cnt-interaction-type');
     if (interactionSelect) interactionSelect.value = item.interactionType || 'None';
+    const storyCtaEl = document.getElementById('cnt-story-cta');
+    if (storyCtaEl) storyCtaEl.value = item.cta || '';
 
     document.getElementById('content-modal-title').textContent = "تعديل قطعة المحتوى";
 }
@@ -539,20 +544,50 @@ function openContentPlanModal(clientId) {
     const modalTitle = document.getElementById('plan-modal-client-name');
     if (modalTitle) modalTitle.textContent = client.name;
 
-    const plan = client.contentPlan || { platforms: ["Instagram"], goal: "Awareness", deliverables: {}, notes: "" };
+    const plan = client.contentPlan || { 
+        platforms: ["Instagram", "Facebook"], 
+        goal: "Awareness", 
+        deliverables: {}, 
+        notes: "" 
+    };
     
-    const allPlatforms = ["Instagram", "TikTok", "Facebook", "YouTube", "YouTube Shorts", "Snapchat", "Threads", "LinkedIn", "X", "Google Business Profile", "Other"];
+    const metaPlatforms = ["Instagram", "Facebook", "Threads"];
+    const otherPlatforms = ["TikTok", "YouTube", "YouTube Shorts", "LinkedIn", "Snapchat", "X (Twitter)", "Google Business Profile"];
+    
     const platformsContainer = document.getElementById('plan-platforms-checkboxes');
     if (platformsContainer) {
-        platformsContainer.innerHTML = allPlatforms.map(p => {
-            const isChecked = plan.platforms && plan.platforms.includes(p);
-            return `
-                <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white cursor-pointer text-xs font-bold text-slate-700 transition-colors">
-                    <input type="checkbox" name="plan-platform" value="${p}" ${isChecked ? 'checked' : ''} onchange="onPlanPlatformsChange()" class="rounded text-brand-600 focus:ring-brand-500">
-                    <span>${p}</span>
-                </label>
-            `;
-        }).join('');
+        platformsContainer.innerHTML = `
+            <div class="col-span-full pb-1">
+                <span class="text-[11px] font-black text-indigo-700 block mb-1 flex items-center gap-1">
+                    <i class="fa-brands fa-meta"></i> منصات Meta الرئيسية:
+                </span>
+                <div class="grid grid-cols-3 gap-2">
+                    ${metaPlatforms.map(p => {
+                        const isChecked = plan.platforms && plan.platforms.includes(p);
+                        return `
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50 cursor-pointer text-xs font-bold text-indigo-950 transition-colors">
+                                <input type="checkbox" name="plan-platform" value="${p}" ${isChecked ? 'checked' : ''} onchange="onPlanPlatformsChange()" class="rounded text-brand-600 focus:ring-brand-500">
+                                <span>${p}</span>
+                            </label>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+            <div class="col-span-full pt-1">
+                <span class="text-[11px] font-black text-slate-500 block mb-1">منصات أخرى:</span>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    ${otherPlatforms.map(p => {
+                        const isChecked = plan.platforms && plan.platforms.includes(p);
+                        return `
+                            <label class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white cursor-pointer text-xs font-bold text-slate-700 transition-colors">
+                                <input type="checkbox" name="plan-platform" value="${p}" ${isChecked ? 'checked' : ''} onchange="onPlanPlatformsChange()" class="rounded text-brand-600 focus:ring-brand-500">
+                                <span>${p}</span>
+                            </label>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
     }
 
     const goalSelect = document.getElementById('plan-goal-select');
@@ -589,21 +624,21 @@ function onPlanPlatformsChange() {
         const platDeliv = existingDeliverables[plat] || {};
         return `
             <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
-                <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                    <i class="fa-solid fa-layer-group text-brand-600"></i>
-                    <span>منصة: ${plat}</span>
+                <div class="font-bold text-slate-900 text-xs flex items-center justify-between">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-layer-group text-brand-600"></i>منصة: ${plat}</span>
+                    <span class="text-[10px] text-slate-400">حدد الأعداد والهدف المطلوب</span>
                 </div>
                 <div class="grid grid-cols-3 gap-2.5 text-xs">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">فيديوهات / Reels</label>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">فيديوهات / Reels</label>
                         <input type="number" id="deliv-${plat}-reels" value="${platDeliv.reels || platDeliv.videos || ''}" placeholder="0" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-brand-500">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">بوستات / Designs</label>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">بوستات / Designs</label>
                         <input type="number" id="deliv-${plat}-posts" value="${platDeliv.posts || ''}" placeholder="0" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-brand-500">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">استوري / Stories</label>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">استوري / Stories</label>
                         <input type="number" id="deliv-${plat}-stories" value="${platDeliv.stories || ''}" placeholder="0" class="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-bold focus:outline-none focus:border-brand-500">
                     </div>
                 </div>
@@ -639,7 +674,7 @@ function applyPlanTemplate(templateId) {
         if (storiesInput) storiesInput.value = d.stories || '';
     });
 
-    showToast("info", "تم تطبيق القالب 🎯", `تم تطبيق قالب "${tpl.name}" ويمكنك تخصيصه وتعديله بالكامل.`);
+    showToast("info", "تم تطبيق القالب 🎯", `تم تطبيق مقترحات قالب "${tpl.name}".`);
 }
 
 function handleContentPlanSubmit(e) {
@@ -653,11 +688,92 @@ function handleContentPlanSubmit(e) {
     const notes = document.getElementById('plan-notes-input')?.value.trim() || '';
 
     const deliverables = {};
+    let totalGeneratedCount = 0;
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = (today.getMonth() + 1).toString().padStart(2, '0');
+
     checkedPlatforms.forEach(p => {
         const reels = Number(document.getElementById(`deliv-${p}-reels`)?.value) || 0;
         const posts = Number(document.getElementById(`deliv-${p}-posts`)?.value) || 0;
         const stories = Number(document.getElementById(`deliv-${p}-stories`)?.value) || 0;
         deliverables[p] = { reels, posts, stories };
+
+        const existingReels = (AppState.contentItems || []).filter(i => i.clientId === clientId && i.platform === p && (i.type === 'Reels / Short' || i.type === 'Video')).length;
+        const existingPosts = (AppState.contentItems || []).filter(i => i.clientId === clientId && i.platform === p && (i.type === 'Single Post / تصميم' || i.type === 'Carousel / ألبوم')).length;
+        const existingStories = (AppState.contentItems || []).filter(i => i.clientId === clientId && i.platform === p && i.type === 'Story / تفاعل').length;
+
+        let dayCounter = 1;
+        
+        // 1. Generate missing Reels
+        for (let r = existingReels; r < reels; r++) {
+            const dayPadded = Math.min(28, (dayCounter * 2) + 2).toString().padStart(2, '0');
+            const itemDate = `${currentYear}-${currentMonth}-${dayPadded}`;
+            AppState.contentItems.push({
+                id: 'cnt-' + Date.now() + '-r-' + r,
+                clientId: clientId,
+                title: `[Reel #${r + 1}] فكرة ريلز جديدة (${p})`,
+                platform: p,
+                type: 'Reels / Short',
+                goal: goal === 'Mix' ? (r % 2 === 0 ? 'Awareness' : 'Sales') : goal,
+                date: itemDate,
+                stage: '💡 فكرة',
+                hook: '',
+                body: '',
+                cta: '',
+                shootNotes: '',
+                shots: [],
+                archived: false
+            });
+            totalGeneratedCount++;
+            dayCounter++;
+        }
+
+        // 2. Generate missing Posts
+        for (let pt = existingPosts; pt < posts; pt++) {
+            const dayPadded = Math.min(28, (dayCounter * 2) + 3).toString().padStart(2, '0');
+            const itemDate = `${currentYear}-${currentMonth}-${dayPadded}`;
+            AppState.contentItems.push({
+                id: 'cnt-' + Date.now() + '-p-' + pt,
+                clientId: clientId,
+                title: `[Post #${pt + 1}] تصميم بوست جديد (${p})`,
+                platform: p,
+                type: 'Single Post / تصميم',
+                goal: goal === 'Mix' ? 'Sales' : goal,
+                date: itemDate,
+                stage: '📋 تخطيط',
+                designBrief: '',
+                caption: '',
+                cta: '',
+                shots: [],
+                archived: false
+            });
+            totalGeneratedCount++;
+            dayCounter++;
+        }
+
+        // 3. Generate missing Stories
+        for (let st = existingStories; st < stories; st++) {
+            const dayPadded = Math.min(28, (dayCounter * 2) + 1).toString().padStart(2, '0');
+            const itemDate = `${currentYear}-${currentMonth}-${dayPadded}`;
+            AppState.contentItems.push({
+                id: 'cnt-' + Date.now() + '-s-' + st,
+                clientId: clientId,
+                title: `[Story #${st + 1}] استوري تفاعلي (${p})`,
+                platform: p,
+                type: 'Story / تفاعل',
+                goal: 'Engagement',
+                date: itemDate,
+                stage: '💡 فكرة',
+                storyContent: '',
+                interactionType: 'Poll',
+                cta: '',
+                shots: [],
+                archived: false
+            });
+            totalGeneratedCount++;
+            dayCounter++;
+        }
     });
 
     client.contentPlan = {
@@ -670,7 +786,7 @@ function handleContentPlanSubmit(e) {
     saveState();
     renderAll();
     closeModal('content-plan-modal');
-    showToast("success", "تم حفظ خطة المحتوى 🚀", `تم اعتماد خطة المحتوى الشهرية لـ ${client.name} بنجاح.`);
+    showToast("success", "تم اعتماد وتنظيم الخطة 🚀", `تم حفظ الخطة وتنظيم ${totalGeneratedCount} قطع محتوى في مساحة عمل ${client.name}.`);
 }
 
 // ================= EXPENSE HANDLERS =================
@@ -766,35 +882,40 @@ function viewFullScript(itemId) {
     AppState.currentScriptViewing = item;
 
     document.getElementById('view-script-title').textContent = item.title;
-    document.getElementById('view-script-client').textContent = `${client.name} • ${item.platform} • ${item.stage} (${item.goal || 'هدف عام'})`;
+    document.getElementById('view-script-client').textContent = `${client.name} • ${item.platform} • ${item.type} • ${item.stage} (${item.goal || 'هدف عام'})`;
     
-    // Hook / Brief
+    const hookLabel = document.getElementById('view-script-hook-label');
     const hookBox = document.getElementById('view-script-hook');
-    if (hookBox) {
-        if (item.type === 'Single Post / تصميم') {
-            hookBox.textContent = item.designBrief || 'لا يوجد بريف تصميم مكتوب';
-        } else if (item.type === 'Carousel / ألبوم') {
-            hookBox.textContent = item.slidesOutline || 'لا يوجد مخطط شرائح مكتوب';
-        } else if (item.type === 'Story / تفاعل') {
-            hookBox.textContent = `تفاعل الاستوري: ${item.interactionType || 'None'}`;
-        } else {
-            hookBox.textContent = item.hook || 'لا يوجد هوك مكتوب لهذا المحتوى';
-        }
-    }
-
-    // Body / Caption
+    const bodyLabel = document.getElementById('view-script-body-label');
     const bodyBox = document.getElementById('view-script-body');
-    if (bodyBox) {
-        if (item.type === 'Single Post / تصميم' || item.type === 'Carousel / ألبوم') {
-            bodyBox.textContent = item.caption || 'لا يوجد كابشن مكتوب';
-        } else if (item.type === 'Story / تفاعل') {
-            bodyBox.textContent = item.storyContent || 'لا توجد تفاصيل للمحتوى';
-        } else {
-            bodyBox.textContent = item.body || 'لا توجد تفاصيل للمتن';
-        }
-    }
+    const ctaLabel = document.getElementById('view-script-cta-label');
+    const ctaBox = document.getElementById('view-script-cta');
 
-    document.getElementById('view-script-cta').textContent = item.cta || 'لا توجد دعوة لاتخاذ إجراء';
+    if (item.type === 'Single Post / تصميم') {
+        if (hookLabel) hookLabel.textContent = "بريف التصميم المطلوب للمصمم (Design Brief) 🎨:";
+        if (hookBox) hookBox.textContent = item.designBrief || 'لا يوجد بريف تصميم مكتوب';
+        if (bodyLabel) bodyLabel.textContent = "كابشن البوست المصاحب (Caption):";
+        if (bodyBox) bodyBox.textContent = item.caption || 'لا يوجد كابشن مكتوب';
+        if (ctaBox) ctaBox.textContent = item.cta || 'لا توجد دعوة لاتخاذ إجراء';
+    } else if (item.type === 'Carousel / ألبوم') {
+        if (hookLabel) hookLabel.textContent = "مخطط ونقاط الشرائح (Slides Outline) 📑:";
+        if (hookBox) hookBox.textContent = item.slidesOutline || 'لا يوجد مخطط شرائح مكتوب';
+        if (bodyLabel) bodyLabel.textContent = "كابشن الألبوم (Caption):";
+        if (bodyBox) bodyBox.textContent = item.caption || 'لا يوجد كابشن مكتوب';
+        if (ctaBox) ctaBox.textContent = item.cta || 'احفظ البوست وشاركه';
+    } else if (item.type === 'Story / تفاعل') {
+        if (hookLabel) hookLabel.textContent = "نوع التفاعل المرفق (Sticker / Interaction):";
+        if (hookBox) hookBox.textContent = `نوع التفاعل: ${item.interactionType || 'None'}`;
+        if (bodyLabel) bodyLabel.textContent = "محتوى وفكرة الاستوري (Story Content) 📱:";
+        if (bodyBox) bodyBox.textContent = item.storyContent || 'لا توجد تفاصيل للمحتوى';
+        if (ctaBox) ctaBox.textContent = item.cta || 'اسحب لأعلى / تواصل معنا';
+    } else {
+        if (hookLabel) hookLabel.textContent = "الهوك الافتتاحي (Hook) ⚡:";
+        if (hookBox) hookBox.textContent = item.hook || 'لا يوجد هوك مكتوب لهذا المحتوى';
+        if (bodyLabel) bodyLabel.textContent = "متن الاسكريبت والسيناريو (Script Body) 📝:";
+        if (bodyBox) bodyBox.textContent = item.body || 'لا توجد تفاصيل للمتن';
+        if (ctaBox) ctaBox.textContent = item.cta || 'لا توجد دعوة لاتخاذ إجراء';
+    }
 
     openModal('script-view-modal');
 }
@@ -806,7 +927,7 @@ function copyCurrentScript() {
     
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
-            showToast("success", "تم النسخ بنجاح! 📋", "تم نسخ الاسكريبت بالكامل للحافظة.");
+            showToast("success", "تم النسخ بنجاح! 📋", "تم نسخ التفاصيل بالكامل للحافظة.");
         });
     } else {
         showToast("info", "تم النسخ", text.slice(0, 50) + "...");

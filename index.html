@@ -96,7 +96,7 @@
                 <!-- 3. Unified Tasks (Phase 11) -->
                 <button id="nav-tasks" onclick="switchTab('tasks')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900 cursor-pointer">
                     <i class="fa-solid fa-list-check text-sm text-slate-400"></i>
-                    <span class="sidebar-text flex-1 text-right">المهام والإنتاجية</span>
+                    <span class="sidebar-text flex-1 text-right">المهام (Tasks)</span>
                     <span id="tasks-badge-count" class="sidebar-text text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">0</span>
                 </button>
 
@@ -732,9 +732,9 @@
                     <div id="shoots-list-container" class="space-y-6"></div>
                 </div>
 
-                <!-- ================= TAB 7: المالية والمصروفات (FINANCIAL MANAGEMENT) ================= -->
+                <!-- ================= TAB 7: المالية والمصروفات (ADVANCED FINANCE HUB) ================= -->
                 <div id="tab-finance" class="tab-content space-y-6 hidden">
-                    <!-- Financial Header & Month Selector -->
+                    <!-- 1. Financial Header & Month Selector -->
                     <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-soft space-y-5">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div class="flex items-center gap-3">
@@ -742,8 +742,8 @@
                                     <i class="fa-solid fa-wallet"></i>
                                 </div>
                                 <div>
-                                    <h2 class="text-base font-black text-slate-900">الإدارة المالية وصافي أرباح البيزنس</h2>
-                                    <p class="text-xs text-slate-400 font-semibold">متابعة الدخل، المصروفات التشغيلية، وصافي ربح البيزنس الحقيقي مع فصل المصاريف الشخصية</p>
+                                    <h2 class="text-base font-black text-slate-900">مركز الإدارة المالية والأرباح (Finance Hub)</h2>
+                                    <p class="text-xs text-slate-400 font-semibold">متابعة دقيقة للإيرادات، المصروفات التشغيلية، وصافي ربح البيزنس الحقيقي مع فصل المصاريف الشخصية</p>
                                 </div>
                             </div>
 
@@ -756,16 +756,16 @@
                                     <i class="fa-solid fa-receipt text-[10px]"></i> + تسجيل مصروف
                                 </button>
                                 <button onclick="openNewPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1 shadow-xs cursor-pointer">
-                                    <i class="fa-solid fa-plus text-[10px]"></i> + تسجيل دفعة عميل
+                                    <i class="fa-solid fa-plus text-[10px]"></i> + تحصيل دفعة عميل
                                 </button>
                             </div>
                         </div>
 
-                        <!-- 4 Financial Dashboard Metric Cards -->
+                        <!-- 6 Financial Metric KPI Cards -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <!-- 1. Total Income -->
+                            <!-- 1. Collected Income -->
                             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                                <span class="text-[11px] font-bold text-slate-500 block mb-1">إجمالي الدخل المحصل (Income)</span>
+                                <span class="text-[11px] font-bold text-slate-500 block mb-1">الإيرادات المحصلة (Collected)</span>
                                 <div class="flex items-baseline gap-2">
                                     <span id="fin-metric-income" class="text-xl font-black text-slate-900">0 ج.م</span>
                                 </div>
@@ -774,7 +774,7 @@
 
                             <!-- 2. Business Expenses -->
                             <div class="bg-rose-50/60 p-4 rounded-2xl border border-rose-200">
-                                <span class="text-[11px] font-bold text-rose-700 block mb-1">مصاريف البيزنس والتشغيل</span>
+                                <span class="text-[11px] font-bold text-rose-700 block mb-1">المصروفات التشغيلية للبيزنس</span>
                                 <div class="flex items-baseline gap-2">
                                     <span id="fin-metric-bus-exp" class="text-xl font-black text-rose-900">0 ج.م</span>
                                 </div>
@@ -783,11 +783,11 @@
 
                             <!-- 3. Net Business Profit (Hero Equation) -->
                             <div class="bg-emerald-50/80 p-4 rounded-2xl border-2 border-emerald-300 shadow-xs">
-                                <span class="text-[11px] font-extrabold text-emerald-800 block mb-1">صافي ربح البيزنس (Net Profit) 🚀</span>
+                                <span class="text-[11px] font-extrabold text-emerald-800 block mb-1">صافي ربح البيزنس الحقيقي (Net Profit) 🚀</span>
                                 <div class="flex items-baseline gap-2">
                                     <span id="fin-metric-net-profit" class="text-2xl font-black text-emerald-950">0 ج.م</span>
                                 </div>
-                                <span id="fin-metric-profit-margin" class="text-[10px] text-emerald-700 font-bold block mt-1">هامش ربح: 0%</span>
+                                <span id="fin-metric-profit-margin" class="text-[10px] text-emerald-700 font-bold block mt-1">هامش ربح 0%</span>
                             </div>
 
                             <!-- 4. Personal Expenses (SEPARATE & NOT DEDUCTED FROM PROFIT) -->
@@ -799,94 +799,148 @@
                                 <span class="text-[10px] text-purple-600 font-semibold block mt-1">تسوق، طعام، فواتير (لا تخصم من ربح البيزنس)</span>
                             </div>
                         </div>
+
+                        <!-- Secondary Summary Metrics: Unpaid Dues & Total All Expenses -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                            <div class="p-3.5 bg-amber-50/60 border border-amber-200 rounded-2xl flex items-center justify-between">
+                                <div>
+                                    <span class="text-[11px] font-bold text-amber-800 block">الدفعات المستحقة المعلقة من العملاء:</span>
+                                    <span id="fin-metric-total-due" class="text-base font-black text-amber-950">0 ج.م</span>
+                                </div>
+                                <button onclick="openNewPaymentModal()" class="bg-white border border-amber-300 hover:bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1.5 rounded-xl cursor-pointer">
+                                    تحصيل مستحقات ↗
+                                </button>
+                            </div>
+
+                            <div class="p-3.5 bg-slate-100/70 border border-slate-200 rounded-2xl flex items-center justify-between">
+                                <div>
+                                    <span class="text-[11px] font-bold text-slate-600 block">إجمالي كافة المصروفات (بيزنس + شخصي):</span>
+                                    <span id="fin-metric-total-expenses" class="text-base font-black text-slate-900">0 ج.م</span>
+                                </div>
+                                <span class="text-[10px] font-bold px-2 py-1 rounded-lg bg-white text-slate-500 border border-slate-200">شامل</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- 2. DIRECT MONTHLY FINANCIAL SUMMARY (Q&A BOX) -->
+                    <!-- 2. DIRECT MONTHLY FINANCIAL SUMMARY (END OF MONTH Q&A BOX) -->
                     <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 shadow-xl space-y-4">
                         <div class="flex items-center justify-between pb-3 border-b border-white/10">
                             <div class="flex items-center gap-2.5">
                                 <div class="w-8 h-8 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-xs">
                                     <i class="fa-solid fa-calculator"></i>
                                 </div>
-                                <h3 class="font-black text-sm">الملخص المالي المباشر للشهر</h3>
+                                <div>
+                                    <h3 class="font-black text-sm text-white">ملخص نهاية الشهر (End of Month Summary)</h3>
+                                    <p class="text-[11px] text-slate-300">إجابة مباشرة وسريعة: دخلت كام، صرفت كام، وصافي ربحك كام</p>
+                                </div>
                             </div>
-                            <span class="text-xs text-indigo-200 font-bold" id="fin-summary-month-tag">أغسطس 2026</span>
+                            <span class="text-xs text-indigo-200 font-bold bg-white/10 px-3 py-1 rounded-full border border-white/10" id="fin-summary-month-tag">أغسطس 2026</span>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
-                            <div class="p-3 bg-white/10 rounded-2xl border border-white/10">
-                                <span class="text-slate-300 block mb-1">1. كام دخل جيبي هذا الشهر؟</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                            <div class="p-3.5 bg-white/10 rounded-2xl border border-white/10 space-y-1">
+                                <span class="text-slate-300 block font-semibold">1. دخلت كام في جيبي؟</span>
                                 <span id="fin-qa-income" class="font-black text-base text-emerald-400 block">0 ج.م</span>
+                                <span class="text-[10px] text-slate-400">الدفعات المحصلة فعلياً</span>
                             </div>
 
-                            <div class="p-3 bg-white/10 rounded-2xl border border-white/10">
-                                <span class="text-slate-300 block mb-1">2. كام صرفت على شغلي والبيزنس؟</span>
+                            <div class="p-3.5 bg-white/10 rounded-2xl border border-white/10 space-y-1">
+                                <span class="text-slate-300 block font-semibold">2. صرفت كام على الشغل؟</span>
                                 <span id="fin-qa-bus-exp" class="font-black text-base text-rose-400 block">0 ج.م</span>
+                                <span class="text-[10px] text-slate-400">مصاريف التشغيل والإنتاج</span>
                             </div>
 
-                            <div class="p-3 bg-white/10 rounded-2xl border border-white/10">
-                                <span class="text-slate-300 block mb-1">3. كام صافي مكسب البيزنس؟</span>
+                            <div class="p-3.5 bg-white/10 rounded-2xl border border-white/10 space-y-1">
+                                <span class="text-slate-300 block font-semibold">3. صافي مكسب البيزنس كام؟</span>
                                 <span id="fin-qa-net" class="font-black text-base text-amber-300 block">0 ج.م</span>
+                                <span class="text-[10px] text-slate-400">الإيراد المحصل - مصاريف البيزنس</span>
                             </div>
 
-                            <div class="p-3 bg-white/10 rounded-2xl border border-white/10">
-                                <span class="text-slate-300 block mb-1">4. كام صرفت على نفسي شخصياً؟</span>
+                            <div class="p-3.5 bg-white/10 rounded-2xl border border-white/10 space-y-1">
+                                <span class="text-slate-300 block font-semibold">4. صرفت كام شخصياً؟</span>
                                 <span id="fin-qa-pers-exp" class="font-black text-base text-purple-300 block">0 ج.م</span>
+                                <span class="text-[10px] text-slate-400">مصاريفك الشخصية (مفصولة)</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3. EXPENSES LEDGER & BREAKDOWN (DETAILED LOG) -->
+                    <!-- 3. UNIFIED TRANSACTIONS LEDGER & FILTERS (FULL REVENUE + EXPENSES LOG) -->
                     <div class="bg-white rounded-3xl border border-slate-200 shadow-soft overflow-hidden space-y-4">
                         <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                             <div>
-                                <h3 class="font-black text-slate-900 text-sm flex items-center gap-2">
-                                    <i class="fa-solid fa-receipt text-rose-600"></i>
-                                    <span>سجل وتفاصيل المصروفات (Expenses Ledger)</span>
-                                </h3>
-                                <p class="text-[11px] text-slate-400 mt-0.5">تفصيل كافة بنود الصرف مع التصنيف والنوع والملاحظات</p>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="font-black text-slate-900 text-sm flex items-center gap-2">
+                                        <i class="fa-solid fa-receipt text-indigo-600"></i>
+                                        <span>سجل المعاملات والعمليات المالية (Transactions Ledger)</span>
+                                    </h3>
+                                    <span id="fin-transactions-count" class="text-xs text-slate-400 font-bold"></span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 mt-0.5">سجل كامل يجمع الإيرادات والتحصيلات، ومصروفات البيزنس، والمصاريف الشخصية في جدول موحد</p>
                             </div>
 
-                            <!-- Expense Filters: Type & Category -->
-                            <div class="flex flex-wrap items-center gap-2 text-xs">
+                            <!-- Multi-Filters: Type, Client, Category -->
+                            <div class="flex flex-wrap items-center gap-2 text-xs w-full md:w-auto">
                                 <select id="fin-filter-type" onchange="onExpenseFilterChange()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-bold text-slate-800 focus:outline-none cursor-pointer">
-                                    <option value="ALL">جميع الأنواع (بيزنس + شخصي)</option>
-                                    <option value="business">مصاريف بيزنس فقط 💼</option>
-                                    <option value="personal">مصاريف شخصية فقط 👤</option>
+                                    <option value="ALL">جميع العمليات (إيراد + مصروف)</option>
+                                    <option value="income">إيرادات وتحصيلات فقط 💰</option>
+                                    <option value="business">مصروفات بيزنس وتشغيل 💼</option>
+                                    <option value="personal">مصاريف شخصية 👤</option>
+                                </select>
+
+                                <select id="fin-filter-client" onchange="onExpenseFilterChange()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-bold text-slate-800 focus:outline-none cursor-pointer">
+                                    <option value="ALL">جميع العملاء / المصادر</option>
                                 </select>
 
                                 <select id="fin-filter-cat" onchange="onExpenseFilterChange()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-bold text-slate-800 focus:outline-none cursor-pointer">
                                     <option value="ALL">جميع التصنيفات</option>
-                                    <option value="Ads">إعلانات (Ads)</option>
+                                    <option value="Retainer / اشتراك شهري">اشتراكات عملاء (Retainers)</option>
+                                    <option value="Ads">إعلانات وميديا بايينج (Ads)</option>
                                     <option value="Production">إنتاج وتصوير (Production)</option>
                                     <option value="Design">تصميم ومونتاج (Design)</option>
                                     <option value="Software & Tools">أدوات وبرامج (Software)</option>
                                     <option value="Transportation">مواصلات وبنزين (Transportation)</option>
                                     <option value="Food">طعام ومشروبات (Food)</option>
                                     <option value="Shopping">تسوق ومشتريات (Shopping)</option>
-                                    <option value="Bills">فواتير (Bills)</option>
+                                    <option value="Bills">فواتير والتزامات (Bills)</option>
                                     <option value="Other">أخرى (Other)</option>
                                 </select>
                             </div>
                         </div>
 
-                        <!-- Expenses Table -->
+                        <!-- Complete Ledger Table -->
                         <div class="overflow-x-auto">
                             <table class="w-full text-right text-xs">
                                 <thead class="bg-slate-50/80 text-slate-600 font-bold border-b border-slate-200/80">
                                     <tr>
-                                        <th class="py-3 px-4">اسم المصروف / البيان</th>
-                                        <th class="py-3 px-4">المبلغ</th>
-                                        <th class="py-3 px-4">النوع</th>
-                                        <th class="py-3 px-4">التصنيف</th>
-                                        <th class="py-3 px-4">التاريخ</th>
-                                        <th class="py-3 px-4">ملاحظات</th>
-                                        <th class="py-3 px-4 text-center">حذف</th>
+                                        <th class="py-3.5 px-4">بيان المعاملة</th>
+                                        <th class="py-3.5 px-4">نوع العملية</th>
+                                        <th class="py-3.5 px-4">العميل / المصدر</th>
+                                        <th class="py-3.5 px-4">التصنيف</th>
+                                        <th class="py-3.5 px-4">التاريخ</th>
+                                        <th class="py-3.5 px-4">المبلغ</th>
+                                        <th class="py-3.5 px-4 text-center">إجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody id="fin-ledger-tbody" class="divide-y divide-slate-100 text-slate-700"></tbody>
                             </table>
                         </div>
+                    </div>
+
+                    <!-- 4. CLIENT RETINERS & DUES BREAKDOWN -->
+                    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-soft space-y-4">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                            <div>
+                                <h3 class="font-black text-slate-900 text-sm flex items-center gap-2">
+                                    <i class="fa-solid fa-users text-brand-600"></i>
+                                    <span>متابعة مستحقات واشتراكات العملاء (Client Dues & Retainers)</span>
+                                </h3>
+                                <p class="text-[11px] text-slate-400 mt-0.5">تفاصيل الاشتراكات الشهرية لكل عميل، ما تم تحصيله، والمتبقي للتحصيل</p>
+                            </div>
+                            <button onclick="openNewPaymentModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1 shadow-xs cursor-pointer">
+                                + تسجيل تحصيل
+                            </button>
+                        </div>
+                        <div id="fin-client-dues-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 text-xs"></div>
                     </div>
                 </div>
             </main>
@@ -1049,7 +1103,6 @@
             </form>
         </div>
     </div>
-
 
     <!-- 1. CONTENT MODAL (DYNAMIC MULTI-TYPE CREATION) -->
     <div id="modal-content" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
@@ -1387,24 +1440,24 @@
 
             <div class="space-y-3.5 text-xs">
                 <div>
-                    <span class="font-bold text-amber-700 block mb-1">الهوك الافتتاحي (Hook):</span>
+                    <span id="view-script-hook-label" class="font-bold text-amber-700 block mb-1">الهوك الافتتاحي (Hook):</span>
                     <div id="view-script-hook" class="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-slate-900 font-bold leading-relaxed break-words"></div>
                 </div>
 
                 <div>
-                    <span class="font-bold text-slate-700 block mb-1">متن الاسكريبت (Script Body):</span>
+                    <span id="view-script-body-label" class="font-bold text-slate-700 block mb-1">متن الاسكريبت (Script Body):</span>
                     <div id="view-script-body" class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-slate-800 leading-relaxed break-words whitespace-pre-line"></div>
                 </div>
 
                 <div>
-                    <span class="font-bold text-indigo-700 block mb-1">الدعوة لاتخاذ إجراء (Call to Action):</span>
+                    <span id="view-script-cta-label" class="font-bold text-indigo-700 block mb-1">الدعوة لاتخاذ إجراء (Call to Action):</span>
                     <div id="view-script-cta" class="p-3 bg-indigo-50 rounded-2xl border border-indigo-200 text-indigo-950 font-bold break-words"></div>
                 </div>
             </div>
 
             <div class="flex items-center justify-between pt-3 border-t border-slate-100">
                 <button onclick="copyCurrentScript()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-sm cursor-pointer">
-                    <i class="fa-solid fa-copy"></i> نسخ الاسكريبت بالكامل
+                    <i class="fa-solid fa-copy"></i> نسخ التفاصيل بالكامل
                 </button>
                 <button onclick="closeModal('script-view-modal')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer">إغلاق</button>
             </div>
@@ -1476,7 +1529,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">العميل (اختياري)</label>
-                        <select id="task-client-id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-purple-500 cursor-pointer">
+                        <select id="task-client-id" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-purple-500 cursor-pointer">
                             <option value="">بدون عميل (مهمة عامة)</option>
                         </select>
                     </div>
