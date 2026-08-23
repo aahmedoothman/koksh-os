@@ -45,7 +45,102 @@ function switchTab(tabId) {
     }
 
     renderAll();
+    if (tabId === 'content' && typeof applyResponsiveContentView === 'function') {
+        applyResponsiveContentView();
+    }
+    closeMobileSidebar();
 }
+
+function openMobileSidebar() {
+    if (window.innerWidth >= 1024) return;
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const button = document.getElementById('mobile-menu-btn');
+    if (sidebar) {
+        sidebar.classList.add('mobile-open');
+        sidebar.removeAttribute('aria-hidden');
+        sidebar.inert = false;
+    }
+    if (overlay) overlay.classList.remove('hidden');
+    if (button) button.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('mobile-nav-open');
+    window.requestAnimationFrame(() => sidebar?.querySelector('.nav-item')?.focus());
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const button = document.getElementById('mobile-menu-btn');
+    const focusWasInside = sidebar?.contains(document.activeElement);
+    if (sidebar) {
+        sidebar.classList.remove('mobile-open');
+        if (window.innerWidth < 1024) {
+            sidebar.setAttribute('aria-hidden', 'true');
+            sidebar.inert = true;
+        } else {
+            sidebar.removeAttribute('aria-hidden');
+            sidebar.inert = false;
+        }
+    }
+    if (overlay) overlay.classList.add('hidden');
+    if (button) button.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('mobile-nav-open');
+    if (focusWasInside && button && window.innerWidth < 1024) button.focus();
+}
+
+function enhanceInteractiveControls() {
+    const iconLabels = {
+        'fa-trash': 'حذف',
+        'fa-pen': 'تعديل',
+        'fa-file-lines': 'عرض التفاصيل',
+        'fa-eye': 'معاينة',
+        'fa-pause': 'إيقاف مؤقت',
+        'fa-play': 'استئناف',
+        'fa-xmark': 'إغلاق',
+        'fa-chevron-right': 'التالي',
+        'fa-chevron-left': 'السابق'
+    };
+
+    document.querySelectorAll('button:not([aria-label])').forEach(button => {
+        if (button.textContent.trim()) return;
+        const title = button.getAttribute('title');
+        if (title) {
+            button.setAttribute('aria-label', title);
+            return;
+        }
+        const icon = button.querySelector('i');
+        if (!icon) return;
+        const match = Object.entries(iconLabels).find(([className]) => icon.classList.contains(className));
+        if (match) button.setAttribute('aria-label', match[1]);
+    });
+}
+
+window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1024) closeMobileSidebar();
+    else if (!document.getElementById('sidebar')?.classList.contains('mobile-open')) closeMobileSidebar();
+    applySidebarState();
+    if (AppState.activeTab === 'content' && typeof applyResponsiveContentView === 'function') {
+        applyResponsiveContentView();
+    }
+});
+
+document.addEventListener('keydown', event => {
+    const sidebar = document.getElementById('sidebar');
+    if (event.key === 'Escape') closeMobileSidebar();
+    if (event.key !== 'Tab' || !sidebar?.classList.contains('mobile-open') || window.innerWidth >= 1024) return;
+    const focusable = [...sidebar.querySelectorAll('button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+        .filter(element => !element.disabled && element.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+    }
+});
 
 function openModal(modalId) {
     const rawId = modalId.replace('-modal','');
@@ -998,4 +1093,6 @@ window.addEventListener('DOMContentLoaded', () => {
     if (shootDate) shootDate.value = todayStr;
 
     renderAll();
+    if (typeof applyResponsiveContentView === 'function') applyResponsiveContentView();
+    closeMobileSidebar();
 });

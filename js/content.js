@@ -36,6 +36,12 @@ function setContentSubView(view) {
     renderContentTab();
 }
 
+function applyResponsiveContentView() {
+    if (window.innerWidth < 768 && AppState.contentSubView === 'calendar') {
+        setContentSubView('table');
+    }
+}
+
 function renderContentTab() {
     const search = (document.getElementById('content-search')?.value || '').toLowerCase();
     const clientF = document.getElementById('content-client-filter')?.value || 'ALL';

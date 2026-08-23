@@ -8,9 +8,15 @@
 function toggleFocusMode() {
     AppState.focusMode = !AppState.focusMode;
     const btn = document.getElementById('focus-mode-toggle-btn') || document.getElementById('btn-toggle-focus');
+    const headerBtn = document.getElementById('header-focus-btn');
     const analyticsSec = document.getElementById('dash-analytics-section');
 
     if (AppState.focusMode) {
+        if (headerBtn) {
+            headerBtn.classList.add('is-active');
+            headerBtn.setAttribute('aria-label', 'إيقاف وضع التركيز');
+            headerBtn.setAttribute('aria-pressed', 'true');
+        }
         if (btn) {
             btn.classList.add('bg-brand-600', 'text-white', 'border-transparent');
             btn.classList.remove('bg-slate-100', 'text-slate-700', 'border-slate-200/60');
@@ -19,6 +25,11 @@ function toggleFocusMode() {
         if (analyticsSec) analyticsSec.classList.add('hidden');
         showToast("info", "وضع التركيز 🎯", "تم إخفاء المؤشرات الجانبية للتركيز على مهام اليوم.");
     } else {
+        if (headerBtn) {
+            headerBtn.classList.remove('is-active');
+            headerBtn.setAttribute('aria-label', 'تفعيل وضع التركيز');
+            headerBtn.setAttribute('aria-pressed', 'false');
+        }
         if (btn) {
             btn.classList.remove('bg-brand-600', 'text-white', 'border-transparent');
             btn.classList.add('bg-slate-100', 'text-slate-700', 'border-slate-200/60');
@@ -120,7 +131,7 @@ function renderTop3Focus() {
                         <i class="fa-solid fa-bullseye"></i>
                     </div>
                     <div>
-                        <h3 class="font-extrabold text-sm text-white">ركز على ده الآن (Focus Now)</h3>
+                        <h3 class="font-extrabold text-sm text-white">أولوياتك الآن</h3>
                         <p class="text-[11px] text-slate-400">أهم 3 مهام مطلوب إنجازها مرتبة بالأولوية القصوى</p>
                     </div>
                 </div>
@@ -254,7 +265,7 @@ function renderTodaysFocus() {
                 <div class="min-w-0 flex-1 space-y-1">
                     <div class="flex items-center gap-2">
                         <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 border border-brand-200/60">
-                            الأولوية الحالية (Top Priority)
+                            الأولوية الحالية
                         </span>
                         ${heroItem.clientId ? `<button onclick="navigateToClientWorkspace('${heroItem.clientId}')" class="text-[10px] font-bold text-slate-500 hover:text-brand-600 hover:underline">مساحة العميل ↗</button>` : ''}
                     </div>
